@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --accent: #39FF14; /* Neon Green */
+  --accent-alt: #FFFF00; /* Neon Yellow */
+  --border-width: 4px;
+}
+
+@layer base {
+  body {
+    @apply bg-black text-white font-sans selection:bg-accent selection:text-black;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-black tracking-tighter uppercase;
+    font-family: 'Archivo Black', sans-serif;
+  }
+}
+
+@layer components {
+  .brutalist-card {
+    @apply bg-black border-4 border-white p-6 transition-all duration-200;
+    box-shadow: 8px 8px 0px 0px #ffffff;
+  }
+
+  .brutalist-card:hover {
+    @apply -translate-x-1 -translate-y-1;
+    box-shadow: 12px 12px 0px 0px var(--accent);
+    border-color: var(--accent);
+  }
+
+  .brutalist-btn {
+    @apply bg-white text-black font-black px-6 py-2 border-4 border-white transition-all uppercase inline-block;
+    box-shadow: 4px 4px 0px 0px var(--accent);
+  }
+
+  .brutalist-btn:hover {
+    @apply -translate-x-0.5 -translate-y-0.5;
+    box-shadow: 6px 6px 0px 0px var(--accent);
+  }
+
+  .section-title {
+    @apply text-5xl md:text-7xl mb-12 inline-block bg-white text-black px-4 py-2;
+    transform: rotate(-2deg);
+  }
+
+  .badge {
+    @apply border-2 border-white px-2 py-1 text-sm font-bold uppercase;
+  }
+}

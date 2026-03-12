@@ -1,0 +1,29 @@
+{
+  "name": "nabil-portfolio-brutalist",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "drizzle-orm": "^0.45.1",
+    "nuxt": "^3.12.0",
+    "nuxt-auth-utils": "^0.5.29",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.12.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@vueuse/nuxt": "^10.11.0",
+    "drizzle-kit": "^0.31.9",
+    "framer-motion": "latest",
+    "lucide-vue-next": "^0.400.0",
+    "tsx": "^4.21.0"
+  }
+}

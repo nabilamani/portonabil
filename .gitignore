@@ -1,0 +1,20 @@
+# Nuxt dev files
+.nuxt
+.output
+
+# Node modules
+node_modules
+
+# Environment variables
+.env
+
+# Database
+sqlite.db
+
+# Misc
+.DS_Store
+Thumbs.db
+dist
+.vscode
+.idea
+*.log
