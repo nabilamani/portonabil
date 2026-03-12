@@ -37,7 +37,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <section v-if="profile" class="min-h-screen flex flex-col justify-center relative overflow-hidden px-4">
+  <section v-if="profile" class="min-h-screen flex flex-col justify-center relative px-4">
     <!-- Playful Background Shapes -->
     <div class="absolute top-20 right-[10%] w-32 h-32 bg-soft-purple rounded-full blur-3xl opacity-30 animate-pulse"></div>
     <div class="absolute bottom-40 left-[5%] w-64 h-64 bg-soft-blue rounded-full blur-3xl opacity-20"></div>

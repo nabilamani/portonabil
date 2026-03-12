@@ -21,7 +21,22 @@ const initObserver = () => {
         rootMargin: '0px 0px -50px 0px'
     })
 
-    document.querySelectorAll('.reveal-text').forEach(el => observer.observe(el))
+    // Observe existing elements
+    const observeAll = () => {
+        document.querySelectorAll('.reveal-text:not(.is-revealed)').forEach(el => observer.observe(el))
+    }
+
+    observeAll()
+
+    // Observe future elements (like Load More)
+    const mutationObserver = new MutationObserver(() => {
+        observeAll()
+    })
+
+    mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    })
 }
 
 watch(isIntroDone, (done) => {
@@ -79,6 +94,10 @@ watch(isIntroDone, (done) => {
       <Hero :profile="portfolio.profile" />
       <About id="about" :profile="portfolio.profile" />
       <Projects id="projects" :projects="portfolio.projects" />
+      
+      <!-- Crossing Marquee Divider -->
+      <MarqueeDivider />
+
       <Experience id="experience" :experiences="portfolio.experiences" />
       <Skills id="skills" :skills="portfolio.skills" />
       <Education 
