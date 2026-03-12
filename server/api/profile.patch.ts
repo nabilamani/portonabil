@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
         
         // 1. Sanitize: Take only the fields we want and ensure no undefined values
         const updateData: any = {};
-        const fields = ['name', 'role', 'description', 'bio', 'email', 'github', 'linkedin', 'phone', 'address'];
+        const fields = ['name', 'role', 'description', 'bio', 'email', 'github', 'linkedin', 'phone', 'address', 'photoUrl'];
         
         fields.forEach(field => {
             if (body[field] !== undefined) {

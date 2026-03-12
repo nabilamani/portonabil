@@ -3,36 +3,39 @@ defineProps(['education', 'organizations', 'certifications'])
 </script>
 
 <template>
-  <section v-if="education" class="space-y-20">
-    <h2 class="section-title">PENDIDIKAN</h2>
-    <div class="grid md:grid-cols-2 gap-12">
-      <div v-for="item in education" :key="item.id" class="brutalist-card border-accent">
-        <h3 class="text-2xl mb-2">{{ item.institution }}</h3>
-        <p class="font-bold opacity-80 mb-4">{{ item.degree }} <span v-if="item.gpa">| IPK {{ item.gpa }}</span></p>
-        <p class="text-xl font-black text-accent">{{ item.period }}</p>
-      </div>
+  <section v-if="education" class="max-w-6xl mx-auto px-4 py-32 space-y-40">
+    <div>
+        <h2 class="section-title mb-24">PENDIDIKAN</h2>
+        <div class="grid md:grid-cols-2 gap-16">
+          <div v-for="item in education" :key="item.id" class="brutalist-card card-blue bg-neutral-900 group overflow-visible">
+            <div class="absolute -top-4 -left-4 w-12 h-12 bg-soft-blue border-4 border-black rounded-full flex items-center justify-center text-2xl z-20">🎓</div>
+            <h3 class="text-3xl mb-4 pt-4">{{ item.institution }}</h3>
+            <p class="font-bold text-soft-purple text-xl mb-6">{{ item.degree }} <span v-if="item.gpa" class="text-white/40 block md:inline md:ml-2">| IPK {{ item.gpa }}</span></p>
+            <div class="bg-white text-black px-4 py-1 inline-block font-black rounded-lg skew-x-[-10deg]">{{ item.period }}</div>
+          </div>
+        </div>
     </div>
 
     <!-- ORGANIZATIONS -->
-    <div v-if="organizations?.length" class="mt-20">
-      <h2 class="section-title">ORGANISASI</h2>
-      <div class="grid md:grid-cols-2 gap-8">
-        <div v-for="org in organizations" :key="org.id" class="brutalist-card bg-neutral-900 border-white">
-          <p class="text-accent font-black mb-2">{{ org.period }}</p>
-          <h3 class="text-xl mb-1">{{ org.org }}</h3>
-          <p class="font-bold opacity-80 uppercase text-xs">{{ org.role }}</p>
+    <div v-if="organizations?.length">
+      <h2 class="section-title mb-24 bg-soft-yellow">ORGANISASI</h2>
+      <div class="grid md:grid-cols-3 gap-10">
+        <div v-for="org in organizations" :key="org.id" class="brutalist-card card-yellow bg-neutral-900 hover:rotate-2 transition-transform">
+          <p class="text-soft-yellow font-black mb-4 tracking-tighter">{{ org.period }}</p>
+          <h3 class="text-2xl mb-2">{{ org.org }}</h3>
+          <p class="font-bold opacity-60 uppercase text-xs tracking-widest text-soft-pink">{{ org.role }}</p>
         </div>
       </div>
     </div>
 
-    <!-- NON-FORMAL -->
-    <div v-if="certifications?.length" class="mt-20">
-      <h3 class="text-4xl mb-12 uppercase font-black underline decoration-4 underline-offset-8">Pelatihan & Sertifikasi</h3>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div v-for="item in certifications" :key="item.id" class="p-6 border-b-4 border-r-4 border-white bg-neutral-900 group transition-all hover:bg-accent hover:border-black hover:text-black">
-          <p class="text-sm opacity-70 group-hover:text-black">{{ item.date }}</p>
-          <h4 class="text-lg font-black mt-2 leading-snug">{{ item.title }}</h4>
-          <p class="text-xs mt-4 group-hover:text-black/70">{{ item.issuer }}</p>
+    <!-- CERTIFICATIONS -->
+    <div v-if="certifications?.length">
+      <h2 class="section-title mb-24 bg-soft-purple text-white border-white">SERTIFIKASI</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
+        <div v-for="item in certifications" :key="item.id" class="brutalist-card card-pink bg-neutral-900 group hover:bg-soft-pink transition-colors">
+          <p class="text-sm font-black text-white/50 group-hover:text-black/50">{{ item.date }}</p>
+          <h4 class="text-xl font-black mt-4 underline decoration-2 underline-offset-4 group-hover:text-black">{{ item.title }}</h4>
+          <p class="text-sm mt-6 font-bold group-hover:text-black/70">{{ item.issuer }}</p>
         </div>
       </div>
     </div>

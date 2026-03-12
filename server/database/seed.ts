@@ -23,7 +23,7 @@ async function seed() {
             role: "Web & Mobile Developer",
             email: "nabilamani2304@gmail.com",
             phone: "+62 857 2885 3831",
-            address: "Palur wetan 02/05 Palur, Mojolaban, Sukoharjo, Jawa Tengah",
+            address: "Palur Wetan, Mojolaban, Sukoharjo, Jawa Tengah",
             description: "Web & Mobile Developer dengan pengalaman di bidang Full-Stack Development dan UI/UX Design. Terbiasa mengembangkan aplikasi menggunakan PHP, JavaScript, TypeScript, dan Dart dengan library maupun framework seperti jQuery, React.js, Tailwind CSS, Bootstrap, Laravel, CodeIgniter, dan Flutter.",
             bio: "Menguasai pengembangan REST API menggunakan Laravel dan integrasinya dengan aplikasi mobile berbasis Flutter, serta mampu mengelola dan mengoptimasi basis data menggunakan MySQL dan layanan Firebase. Berpengalaman dalam membangun sistem informasi, aplikasi manajemen data, company profile, hingga aplikasi mobile terintegrasi, serta dapat mengembangkan arsitektur web monolith maupun microservices sesuai kebutuhan proyek.",
             github: "https://github.com/nabilamani",

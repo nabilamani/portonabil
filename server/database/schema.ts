@@ -11,6 +11,7 @@ export const profile = sqliteTable('profile', {
     address: text('address'),
     github: text('github'),
     linkedin: text('linkedin'),
+    photoUrl: text('photo_url'),
 });
 
 export const experiences = sqliteTable('experiences', {

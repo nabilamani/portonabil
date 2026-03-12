@@ -2,12 +2,15 @@
 const password = ref('')
 const error = ref('')
 
+const { fetch: refreshSession } = useUserSession()
+
 async function login() {
   try {
     await $fetch('/api/login', {
       method: 'POST',
       body: { password: password.value }
     })
+    await refreshSession()
     navigateTo('/admin')
   } catch (e) {
     error.value = 'SALAH PASSWORD, COBA LAGI!'

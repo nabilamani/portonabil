@@ -12,7 +12,9 @@
 
 @layer base {
   body {
-    @apply bg-black text-white font-sans selection:bg-accent selection:text-black;
+    @apply bg-[#080808] text-white font-sans selection:bg-accent selection:text-black antialiased;
+    background-image: radial-gradient(#ffffff10 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
   h1, h2, h3, h4 {
@@ -23,32 +25,48 @@
 
 @layer components {
   .brutalist-card {
-    @apply bg-black border-4 border-white p-6 transition-all duration-200;
-    box-shadow: 8px 8px 0px 0px #ffffff;
+    @apply bg-black border-4 border-white p-6 transition-all duration-300 rounded-3xl relative overflow-hidden;
+    box-shadow: 12px 12px 0px 0px #ffffff;
   }
 
   .brutalist-card:hover {
     @apply -translate-x-1 -translate-y-1;
-    box-shadow: 12px 12px 0px 0px var(--accent);
+    box-shadow: 16px 16px 0px 0px var(--accent);
     border-color: var(--accent);
   }
 
+  /* Variant Card Colors */
+  .card-purple { @apply border-[#8B5CF6]; box-shadow: 12px 12px 0px 0px #8B5CF6; }
+  .card-pink { @apply border-[#EC4899]; box-shadow: 12px 12px 0px 0px #EC4899; }
+  .card-yellow { @apply border-[#F59E0B]; box-shadow: 12px 12px 0px 0px #F59E0B; }
+  .card-green { @apply border-[#10B981]; box-shadow: 12px 12px 0px 0px #10B981; }
+  .card-blue { @apply border-[#3B82F6]; box-shadow: 12px 12px 0px 0px #3B82F6; }
+
   .brutalist-btn {
-    @apply bg-white text-black font-black px-6 py-2 border-4 border-white transition-all uppercase inline-block;
-    box-shadow: 4px 4px 0px 0px var(--accent);
+    @apply bg-white text-black font-black px-8 py-3 border-4 border-black transition-all uppercase inline-block rounded-2xl;
+    box-shadow: 6px 6px 0px 0px #000000;
   }
 
   .brutalist-btn:hover {
     @apply -translate-x-0.5 -translate-y-0.5;
-    box-shadow: 6px 6px 0px 0px var(--accent);
+    box-shadow: 8px 8px 0px 0px #000000;
   }
 
   .section-title {
-    @apply text-5xl md:text-7xl mb-12 inline-block bg-white text-black px-4 py-2;
-    transform: rotate(-2deg);
+    @apply text-5xl md:text-8xl mb-16 inline-block bg-white text-black px-8 py-4 font-black tracking-tighter rounded-2xl border-4 border-black;
+    box-shadow: 10px 10px 0px 0px #000000;
+    transform: rotate(-1deg);
   }
 
   .badge {
-    @apply border-2 border-white px-2 py-1 text-sm font-bold uppercase;
+    @apply border-2 border-white px-3 py-1 text-sm font-black uppercase rounded-full bg-neutral-900;
+  }
+
+  /* Fun shapes & squiggles */
+  .squiggle {
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q 12.5 0 25 10 T 50 10 T 75 10 T 100 10' fill='none' stroke='%2339FF14' stroke-width='4'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    height: 20px;
+    width: 100%;
   }
 }

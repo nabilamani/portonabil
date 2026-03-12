@@ -3,55 +3,184 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { data: portfolio, refresh } = await useFetch('/api/portfolio')
+const { data: portfolio, refresh, pending } = await useFetch('/api/portfolio')
 const activeTab = ref('profile')
+const isSaving = ref(false)
 
 async function updateProfile() {
-  await $fetch('/api/profile', {
-    method: 'PATCH',
-    body: portfolio.value.profile
-  })
-  alert('Profile Updated!')
-  refresh()
+  isSaving.value = true
+  try {
+    await $fetch('/api/profile', {
+      method: 'PATCH',
+      body: portfolio.value.profile
+    })
+    await refresh()
+  } finally {
+    isSaving.value = false
+  }
+}
+
+async function onPhotoSelected(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  
+  if (file.size > 2 * 1024 * 1024) {
+    alert('File terlalu besar! Maksimal 2MB.')
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = async (event) => {
+    portfolio.value.profile.photoUrl = event.target.result
+    // Auto save photo URL to DB
+    await updateProfile()
+  }
+  reader.readAsDataURL(file)
 }
 
 async function saveExperience(exp) {
-    if (exp.id) {
-        await $fetch('/api/experiences', { method: 'PATCH', body: exp })
-    } else {
-        await $fetch('/api/experiences', { method: 'POST', body: exp })
+    isSaving.value = true
+    try {
+        if (exp.id) {
+            await $fetch('/api/experiences', { method: 'PATCH', body: exp })
+        } else {
+            await $fetch('/api/experiences', { method: 'POST', body: exp })
+        }
+        await refresh()
+    } finally {
+        isSaving.value = false
     }
-    refresh()
 }
 
 async function deleteExperience(id) {
     if (confirm('Delete this experience?')) {
-        await $fetch(`/api/experiences?id=${id}`, { method: 'DELETE' })
-        refresh()
+        isSaving.value = true
+        try {
+            await $fetch(`/api/experiences?id=${id}`, { method: 'DELETE' })
+            await refresh()
+        } finally {
+            isSaving.value = false
+        }
     }
 }
 
 async function addSkill(category) {
     const name = prompt(`Add new ${category} skill:`)
     if (name) {
-        await $fetch('/api/skills', { method: 'POST', body: { name, category } })
-        refresh()
+        isSaving.value = true
+        try {
+            await $fetch('/api/skills', { method: 'POST', body: { name, category } })
+            await refresh()
+        } finally {
+            isSaving.value = false
+        }
     }
 }
 
 async function deleteSkill(id) {
-    await $fetch(`/api/skills?id=${id}`, { method: 'DELETE' })
-    refresh()
+    isSaving.value = true
+    try {
+        await $fetch(`/api/skills?id=${id}`, { method: 'DELETE' })
+        await refresh()
+    } finally {
+        isSaving.value = false
+    }
 }
+
+async function saveEducation(item) {
+    isSaving.value = true
+    try {
+        if (item.id) {
+            await $fetch('/api/education', { method: 'PATCH', body: item })
+        } else {
+            await $fetch('/api/education', { method: 'POST', body: item })
+        }
+        await refresh()
+    } finally {
+        isSaving.value = false
+    }
+}
+
+async function deleteEducation(id) {
+    if (confirm('Delete this education entry?')) {
+        isSaving.value = true
+        try {
+            await $fetch(`/api/education?id=${id}`, { method: 'DELETE' })
+            await refresh()
+        } finally {
+            isSaving.value = false
+        }
+    }
+}
+
+async function saveOrg(item) {
+    isSaving.value = true
+    try {
+        if (item.id) {
+            await $fetch('/api/organizations', { method: 'PATCH', body: item })
+        } else {
+            await $fetch('/api/organizations', { method: 'POST', body: item })
+        }
+        await refresh()
+    } finally {
+        isSaving.value = false
+    }
+}
+
+async function deleteOrg(id) {
+    if (confirm('Delete this organization entry?')) {
+        isSaving.value = true
+        try {
+            await $fetch(`/api/organizations?id=${id}`, { method: 'DELETE' })
+            await refresh()
+        } finally {
+            isSaving.value = false
+        }
+    }
+}
+
+async function saveCert(item) {
+    isSaving.value = true
+    try {
+        if (item.id) {
+            await $fetch('/api/certifications', { method: 'PATCH', body: item })
+        } else {
+            await $fetch('/api/certifications', { method: 'POST', body: item })
+        }
+        await refresh()
+    } finally {
+        isSaving.value = false
+    }
+}
+
+async function deleteCert(id) {
+    if (confirm('Delete this certification?')) {
+        isSaving.value = true
+        try {
+            await $fetch(`/api/certifications?id=${id}`, { method: 'DELETE' })
+            await refresh()
+        } finally {
+            isSaving.value = false
+        }
+    }
+}
+
+const { clear: clearSession } = useUserSession()
 
 async function logout() {
     await $fetch('/api/logout', { method: 'POST' })
-    navigateTo('/')
+    await clearSession()
+    navigateTo('/login')
 }
 </script>
 
 <template>
   <div class="min-h-screen bg-black text-white">
+    <!-- Full-page loading overlay -->
+    <div v-if="isSaving" class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center backdrop-blur-sm">
+        <div class="text-4xl font-black animate-bounce tracking-widest text-accent">MENYIMPAN...</div>
+    </div>
+
     <nav class="p-6 border-b-4 border-white flex justify-between items-center bg-neutral-950 sticky top-0 z-50">
         <h1 class="text-2xl font-black">MNA CMS</h1>
         <div class="flex gap-4">
@@ -62,7 +191,7 @@ async function logout() {
 
     <div class="p-8">
         <div class="flex flex-wrap gap-4 mb-12">
-            <button v-for="tab in ['profile', 'experiences', 'skills', 'education']" 
+            <button v-for="tab in ['profile', 'experiences', 'skills', 'education', 'organizations', 'certifications']" 
                 :key="tab"
                 @click="activeTab = tab"
                 class="brutalist-btn text-xs"
@@ -83,6 +212,14 @@ async function logout() {
                         
                         <label class="block uppercase font-black">Role</label>
                         <input v-model="portfolio.profile.role" class="cms-input" />
+
+                        <label class="block uppercase font-black">Profile Photo</label>
+                        <div class="flex items-center gap-4">
+                            <div v-if="portfolio.profile.photoUrl" class="w-16 h-16 border-2 border-white overflow-hidden">
+                                <img :src="portfolio.profile.photoUrl" class="w-full h-full object-cover" />
+                            </div>
+                            <input type="file" @change="onPhotoSelected" accept="image/*" class="text-xs file:brutalist-btn file:bg-white file:text-black file:mr-4" />
+                        </div>
 
                         <label class="block uppercase font-black">Email</label>
                         <input v-model="portfolio.profile.email" class="cms-input" />
@@ -136,6 +273,55 @@ async function logout() {
                         </div>
                     </div>
                     <button @click="addSkill('software')" class="text-xs underline hover:text-accent-yellow font-black">+ ADD SOFTWARE</button>
+                </div>
+            </section>
+
+            <!-- Education Manager -->
+            <section v-if="activeTab === 'education'" class="space-y-8">
+                <button @click="saveEducation({ institution: 'New Institution', degree: 'Degree', period: '2024' })" class="brutalist-btn bg-accent text-black font-black">+ ADD EDUCATION</button>
+                <div v-for="edu in portfolio.education" :key="edu.id" class="brutalist-card bg-neutral-900">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <input v-model="edu.institution" class="cms-input" placeholder="Institution" />
+                        <input v-model="edu.degree" class="cms-input" placeholder="Degree" />
+                        <input v-model="edu.period" class="cms-input" placeholder="Period" />
+                        <input v-model="edu.gpa" class="cms-input md:col-span-3" placeholder="GPA (optional)" />
+                    </div>
+                    <div class="flex gap-4 mt-6">
+                        <button @click="saveEducation(edu)" class="brutalist-btn bg-accent text-black flex-1">UPDATE</button>
+                        <button @click="deleteEducation(edu.id)" class="brutalist-btn bg-red-600 text-white">DELETE</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Organizations Manager -->
+            <section v-if="activeTab === 'organizations'" class="space-y-8">
+                <button @click="saveOrg({ org: 'New Org', role: 'Role', period: '2024' })" class="brutalist-btn bg-accent-yellow text-black font-black">+ ADD ORGANIZATION</button>
+                <div v-for="org in portfolio.organizations" :key="org.id" class="brutalist-card bg-neutral-900">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <input v-model="org.org" class="cms-input" placeholder="Organization" />
+                        <input v-model="org.role" class="cms-input" placeholder="Role" />
+                        <input v-model="org.period" class="cms-input" placeholder="Period" />
+                    </div>
+                    <div class="flex gap-4 mt-6">
+                        <button @click="saveOrg(org)" class="brutalist-btn bg-accent text-black flex-1">UPDATE</button>
+                        <button @click="deleteOrg(org.id)" class="brutalist-btn bg-red-600 text-white">DELETE</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Certifications Manager -->
+            <section v-if="activeTab === 'certifications'" class="space-y-8">
+                <button @click="saveCert({ title: 'New Cert', issuer: 'Issuer', date: '2024' })" class="brutalist-btn bg-white text-black font-black">+ ADD CERTIFICATION</button>
+                <div v-for="cert in portfolio.certifications" :key="cert.id" class="brutalist-card bg-neutral-900 font-mono">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <input v-model="cert.title" class="cms-input" placeholder="Title" />
+                        <input v-model="cert.issuer" class="cms-input" placeholder="Issuer" />
+                        <input v-model="cert.date" class="cms-input" placeholder="Date" />
+                    </div>
+                    <div class="flex gap-4 mt-6">
+                        <button @click="saveCert(cert)" class="brutalist-btn bg-accent text-black flex-1 font-sans">UPDATE</button>
+                        <button @click="deleteCert(cert.id)" class="brutalist-btn bg-red-600 text-white font-sans">DELETE</button>
+                    </div>
                 </div>
             </section>
         </div>
