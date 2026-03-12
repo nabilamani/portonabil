@@ -1,9 +1,20 @@
 <script setup>
-const { data: portfolio } = await useFetch('/api/portfolio')
+const { data: portfolio, error } = await useFetch('/api/portfolio')
+
+if (error.value) {
+    console.error('Failed to load portfolio:', error.value)
+}
 </script>
 
 <template>
-  <div v-if="portfolio" class="min-h-screen selection:bg-accent selection:text-black">
+  <div v-if="error" class="min-h-screen bg-black text-white flex items-center justify-center p-8">
+    <div class="brutalist-card border-red-600">
+        <h1 class="text-4xl text-red-600 mb-4">DATABASE ERROR</h1>
+        <p class="opacity-70 mb-8">{{ error.message }}</p>
+        <button @click="() => refreshNuxtData()" class="brutalist-btn bg-white text-black">TRY REFRESH</button>
+    </div>
+  </div>
+  <div v-else-if="portfolio" class="min-h-screen selection:bg-accent selection:text-black">
     <header class="p-8 sticky top-0 bg-black/80 backdrop-blur-md z-50 border-b-4 border-white">
       <div class="container mx-auto flex justify-between items-center">
         <h1 class="text-3xl text-white">MNA.</h1>
@@ -37,6 +48,8 @@ const { data: portfolio } = await useFetch('/api/portfolio')
         <a href="https://ungu.in/linkedin_nabilamani1" target="_blank" class="hover:underline">LINKEDIN</a>
         <a href="mailto:nabilamani2304@gmail.com" class="hover:underline">EMAIL</a>
       </div>
+      <p class="mt-8 font-bold opacity-60 max-w-xl mx-auto">{{ portfolio.profile.address }}</p>
+      <p class="mt-2 font-mono text-accent">{{ portfolio.profile.phone }}</p>
       <p class="mt-20 font-mono">© 2026 MUHAMMAD NABIL AMANI. BUILT WITH NUXT 4 & NITRO.</p>
     </footer>
   </div>

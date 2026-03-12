@@ -7,6 +7,8 @@ export const profile = sqliteTable('profile', {
     description: text('description').notNull(),
     bio: text('bio').notNull(),
     email: text('email'),
+    phone: text('phone'),
+    address: text('address'),
     github: text('github'),
     linkedin: text('linkedin'),
 });
