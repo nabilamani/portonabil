@@ -51,3 +51,17 @@ export const organizations = sqliteTable('organizations', {
     role: text('role').notNull(),
     period: text('period').notNull(),
 });
+
+export const projects = sqliteTable('projects', {
+    id: integer('id').primaryKey(),
+    title: text('title').notNull(),
+    description: text('description').notNull(),
+    stats: text('stats'), 
+    techs: text('techs'),
+    demoUrl: text('demo_url'),
+    githubUrl: text('github_url'),
+    credentials: text('credentials'),
+    features: text('features'), 
+    imageUrl: text('image_url'), 
+    order: integer('order').default(0),
+});

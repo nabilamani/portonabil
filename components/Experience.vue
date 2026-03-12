@@ -5,10 +5,10 @@ const colors = ['card-purple', 'card-pink', 'card-yellow', 'card-green', 'card-b
 
 <template>
   <section v-if="experiences" class="max-w-6xl mx-auto px-4 py-20 relative">
-    <h2 class="section-title mb-24">PENGALAMAN KERJA</h2>
+    <h2 class="section-title mb-24 reveal-text">PENGALAMAN KERJA</h2>
     <div class="space-y-20">
       <div v-for="(exp, index) in experiences" :key="exp.id" 
-        class="brutalist-card bg-neutral-900 border-white group overflow-visible"
+        class="brutalist-card bg-neutral-900 border-white group overflow-visible reveal-text"
         :class="colors[index % colors.length]"
       >
         <!-- Floating Period Badge -->

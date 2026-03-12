@@ -12,6 +12,7 @@
   "dependencies": {
     "@libsql/client": "^0.17.0",
     "drizzle-orm": "^0.45.1",
+    "gsap": "^3.14.2",
     "nuxt": "^3.12.0",
     "nuxt-auth-utils": "^0.5.29",
     "vue": "latest",

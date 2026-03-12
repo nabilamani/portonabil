@@ -10,11 +10,11 @@ const softwareSkills = computed(() => props.skills?.filter(s => s.category === '
     <!-- Background Decoration -->
     <div class="absolute top-0 right-0 w-64 h-64 bg-soft-green opacity-5 rounded-full blur-3xl -z-10"></div>
     
-    <h2 class="section-title mb-24 bg-soft-green">MY SKILL SET</h2>
+    <h2 class="section-title mb-24 bg-soft-green reveal-text">MY SKILL SET</h2>
     
     <div class="grid md:grid-cols-2 gap-20">
       <!-- HARD SKILLS -->
-      <div class="brutalist-card card-purple bg-neutral-900 overflow-visible">
+      <div class="brutalist-card card-purple bg-neutral-900 overflow-visible reveal-text">
         <div class="absolute -top-8 -left-4 bg-soft-purple text-black border-4 border-black px-6 py-2 font-black rounded-2xl rotate-[-5deg] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
             HARD SKILLS
         </div>
@@ -28,7 +28,7 @@ const softwareSkills = computed(() => props.skills?.filter(s => s.category === '
       </div>
 
       <!-- SOFTWARE SKILLS -->
-      <div class="brutalist-card card-yellow bg-neutral-900 overflow-visible">
+      <div class="brutalist-card card-yellow bg-neutral-900 overflow-visible reveal-text">
         <div class="absolute -top-10 -right-4 bg-soft-yellow text-black border-4 border-black px-6 py-2 font-black rounded-2xl rotate-[5deg] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
             SOFTWARE
         </div>

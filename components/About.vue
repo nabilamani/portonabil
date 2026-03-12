@@ -7,10 +7,10 @@ defineProps(['profile'])
     <!-- Decorative Pattern -->
     <div class="absolute -top-10 -left-10 w-40 h-40 bg-soft-pink/10 rounded-full blur-3xl"></div>
     
-    <h2 class="section-title mb-20">SIAPA SAYA?</h2>
+    <h2 class="section-title mb-20 reveal-text">SIAPA SAYA?</h2>
     
     <div class="grid lg:grid-cols-2 gap-20 items-center">
-      <div class="relative group">
+      <div class="relative group reveal-text">
         <!-- Floating Sticker -->
         <div class="absolute -top-12 -left-8 z-20 bg-soft-yellow border-4 border-black px-4 py-2 font-black rounded-xl rotate-[-15deg] group-hover:rotate-0 transition-transform">
             👋 HELLO!
@@ -33,12 +33,12 @@ defineProps(['profile'])
       </div>
 
       <div class="space-y-10">
-        <div class="relative">
+        <div class="relative reveal-text">
             <h3 class="text-3xl font-black text-soft-green mb-4 inline-block underline decoration-4 decoration-white">PROFIL SINGKAT</h3>
             <div class="text-xl md:text-2xl leading-relaxed font-medium text-white/90 bg-neutral-900/50 p-8 rounded-3xl border-2 border-white/10" v-html="profile.description"></div>
         </div>
 
-        <div class="relative">
+        <div class="relative reveal-text">
             <div class="squiggle mb-6 opacity-30"></div>
             <div class="text-lg md:text-xl leading-relaxed text-white/70 italic border-l-4 border-soft-pink pl-6" v-html="profile.bio"></div>
         </div>

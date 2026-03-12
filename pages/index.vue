@@ -1,12 +1,41 @@
 <script setup>
 const { data: portfolio, error } = await useFetch('/api/portfolio')
 
+// Intro State
+const isIntroDone = ref(false)
+
 if (error.value) {
     console.error('Failed to load portfolio:', error.value)
 }
+
+// Scroll Reveal Logic
+const initObserver = () => {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-revealed')
+            }
+        })
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    })
+
+    document.querySelectorAll('.reveal-text').forEach(el => observer.observe(el))
+}
+
+watch(isIntroDone, (done) => {
+    if (done) {
+        nextTick(() => {
+            initObserver()
+        })
+    }
+})
 </script>
 
 <template>
+  <Intro v-if="!isIntroDone" @finished="isIntroDone = true" />
+  
   <div v-if="error" class="min-h-screen bg-black text-white flex items-center justify-center p-8">
     <div class="brutalist-card border-red-600">
         <h1 class="text-4xl text-red-600 mb-4">DATABASE ERROR</h1>
@@ -14,7 +43,7 @@ if (error.value) {
         <button @click="() => refreshNuxtData()" class="brutalist-btn bg-white text-black">TRY REFRESH</button>
     </div>
   </div>
-  <div v-else-if="portfolio" class="min-h-screen selection:bg-soft-purple selection:text-black scroll-smooth">
+  <div v-else-if="portfolio && isIntroDone" class="min-h-screen selection:bg-soft-purple selection:text-black scroll-smooth">
     <!-- Main Background Decorations -->
     <div class="fixed inset-0 -z-50 pointer-events-none">
         <div class="absolute top-[10%] left-[5%] w-96 h-96 bg-soft-purple/10 rounded-full blur-[120px]"></div>
@@ -28,7 +57,7 @@ if (error.value) {
             <h1 class="text-4xl text-white group-hover:text-soft-purple transition-colors">MNA<span class="text-soft-yellow">.</span></h1>
         </div>
         <nav class="hidden lg:flex gap-10">
-          <a v-for="link in ['about', 'experience', 'skills', 'education']" :key="link"
+          <a v-for="link in ['about', 'projects', 'experience', 'skills', 'education']" :key="link"
             :href="'#' + link" 
             class="text-sm uppercase font-black tracking-widest hover:text-soft-yellow hover:scale-110 transition-all font-bold"
           >
@@ -49,6 +78,7 @@ if (error.value) {
     <main class="container mx-auto px-4 py-20 space-y-64">
       <Hero :profile="portfolio.profile" />
       <About id="about" :profile="portfolio.profile" />
+      <Projects id="projects" :projects="portfolio.projects" />
       <Experience id="experience" :experiences="portfolio.experiences" />
       <Skills id="skills" :skills="portfolio.skills" />
       <Education 

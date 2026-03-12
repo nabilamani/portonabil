@@ -25,7 +25,7 @@
 
 @layer components {
   .brutalist-card {
-    @apply bg-black border-4 border-white p-6 transition-all duration-300 rounded-3xl relative overflow-hidden;
+    @apply bg-black border-4 border-white p-6 transition-all duration-300 rounded-3xl relative;
     box-shadow: 12px 12px 0px 0px #ffffff;
   }
 
@@ -60,6 +60,18 @@
 
   .badge {
     @apply border-2 border-white px-3 py-1 text-sm font-black uppercase rounded-full bg-neutral-900;
+  }
+
+  /* Reveal Animation */
+  .reveal-text {
+    @apply opacity-0 transition-all duration-1000 ease-out translate-y-8;
+    filter: blur(20px);
+    will-change: transform, opacity, filter;
+  }
+
+  .reveal-text.is-revealed {
+    @apply opacity-100 translate-y-0;
+    filter: blur(0);
   }
 
   /* Fun shapes & squiggles */

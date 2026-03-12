@@ -165,6 +165,48 @@ async function deleteCert(id) {
     }
 }
 
+async function saveProject(item) {
+    isSaving.value = true
+    try {
+        if (item.id) {
+            await $fetch('/api/projects', { method: 'PATCH', body: item })
+        } else {
+            await $fetch('/api/projects', { method: 'POST', body: item })
+        }
+        await refresh()
+    } finally {
+        isSaving.value = false
+    }
+}
+
+async function deleteProject(id) {
+    if (confirm('Delete this project?')) {
+        isSaving.value = true
+        try {
+            await $fetch(`/api/projects?id=${id}`, { method: 'DELETE' })
+            await refresh()
+        } finally {
+            isSaving.value = false
+        }
+    }
+}
+
+async function onProjectPhotoSelected(e, project) {
+  const file = e.target.files[0]
+  if (!file) return
+  
+  if (file.size > 2 * 1024 * 1024) {
+    alert('File terlalu besar! Maksimal 2MB.')
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = async (event) => {
+    project.imageUrl = event.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
 const { clear: clearSession } = useUserSession()
 
 async function logout() {
@@ -191,7 +233,7 @@ async function logout() {
 
     <div class="p-8">
         <div class="flex flex-wrap gap-4 mb-12">
-            <button v-for="tab in ['profile', 'experiences', 'skills', 'education', 'organizations', 'certifications']" 
+            <button v-for="tab in ['profile', 'projects', 'experiences', 'skills', 'education', 'organizations', 'certifications']" 
                 :key="tab"
                 @click="activeTab = tab"
                 class="brutalist-btn text-xs"
@@ -202,6 +244,55 @@ async function logout() {
         </div>
 
         <div v-if="portfolio" class="max-w-6xl">
+            <!-- Project Manager -->
+            <section v-if="activeTab === 'projects'" class="space-y-8">
+                <button @click="saveProject({ title: 'New Project', description: '', techs: '', order: 0, stats: '[]', features: '[]' })" class="brutalist-btn bg-soft-blue text-black font-black">+ ADD PROJECT</button>
+                <div v-for="project in portfolio.projects" :key="project.id" class="brutalist-card bg-neutral-900 border-white/20">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <label class="block text-xs uppercase font-black text-white/40">Project Title</label>
+                            <input v-model="project.title" class="cms-input" placeholder="Project Title" />
+                            
+                            <label class="block text-xs uppercase font-black text-white/40">Tech Stack (comma separated)</label>
+                            <input v-model="project.techs" class="cms-input" placeholder="e.g. PHP, Laravel, Tailwind" />
+                            
+                            <label class="block text-xs uppercase font-black text-white/40">Demo URL</label>
+                            <input v-model="project.demoUrl" class="cms-input" placeholder="https://..." />
+                            
+                            <label class="block text-xs uppercase font-black text-white/40">GitHub URL</label>
+                            <input v-model="project.githubUrl" class="cms-input" placeholder="https://github.com/..." />
+                        </div>
+                        <div class="space-y-4">
+                            <label class="block text-xs uppercase font-black text-white/40">Project Screenshot</label>
+                            <div class="flex items-center gap-4">
+                                <div v-if="project.imageUrl" class="w-24 h-16 border-2 border-white overflow-hidden bg-black">
+                                    <img :src="project.imageUrl" class="w-full h-full object-cover" />
+                                </div>
+                                <input type="file" @change="(e) => onProjectPhotoSelected(e, project)" accept="image/*" class="text-xs file:brutalist-btn file:bg-white file:text-black file:mr-4" />
+                            </div>
+
+                            <label class="block text-xs uppercase font-black text-white/40">Admin Credentials</label>
+                            <input v-model="project.credentials" class="cms-input" placeholder="Email: ... | Password: ..." />
+
+                            <label class="block text-xs uppercase font-black text-white/40">Stats (JSON format)</label>
+                            <textarea v-model="project.stats" class="cms-input h-20 font-mono text-xs" placeholder='[{"label": "DB", "value": "6", "icon": "database"}]'></textarea>
+                        </div>
+
+                        <div class="md:col-span-2 space-y-4">
+                            <label class="block text-xs uppercase font-black text-white/40">Description</label>
+                            <textarea v-model="project.description" class="cms-input h-24" placeholder="Description"></textarea>
+                            
+                            <label class="block text-xs uppercase font-black text-white/40">Features (JSON Array)</label>
+                            <textarea v-model="project.features" class="cms-input h-24 font-mono text-xs" placeholder='["Feature 1", "Feature 2"]'></textarea>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 mt-8">
+                        <button @click="saveProject(project)" class="brutalist-btn bg-accent text-black flex-1">UPDATE PROJECT</button>
+                        <button @click="deleteProject(project.id)" class="brutalist-btn bg-red-600 text-white">DELETE</button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Profile Editor -->
             <section v-if="activeTab === 'profile'" class="brutalist-card">
                 <h2 class="text-3xl mb-8 uppercase">Edit Profile</h2>

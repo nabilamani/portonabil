@@ -1,5 +1,5 @@
 import { db } from '../database';
-import { profile, experiences, skills, education, organizations, certifications } from '../database/schema';
+import { profile, experiences, skills, education, organizations, certifications, projects } from '../database/schema';
 import { desc, asc } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {
@@ -7,14 +7,18 @@ export default defineEventHandler(async (event) => {
         console.log('--- API: Fetching Portfolio Data ---');
         
         // Menggunakan query builder yang lebih standar untuk Drizzle + LibSQL
-        const profileResult = await db.select().from(profile).limit(1);
-        const profileData = profileResult[0] || null;
+        // Menggunakan Promise.all untuk mengambil semua data secara paralel
+        const [profileResult, experiencesData, skillsData, educationData, organizationsData, certificationsData, projectsData] = await Promise.all([
+            db.select().from(profile).limit(1),
+            db.select().from(experiences).orderBy(desc(experiences.order)), // Assuming 'order' column for experiences
+            db.select().from(skills).orderBy(skills.category),
+            db.select().from(education),
+            db.select().from(organizations),
+            db.select().from(certifications),
+            db.select().from(projects).orderBy(desc(projects.order)) // Assuming 'order' column for projects
+        ]);
 
-        const experiencesData = await db.select().from(experiences).orderBy(asc(experiences.id));
-        const skillsData = await db.select().from(skills);
-        const educationData = await db.select().from(education);
-        const organizationsData = await db.select().from(organizations);
-        const certificationsData = await db.select().from(certifications);
+        const profileData = profileResult[0] || null;
 
         console.log('Profile found:', profileData?.name || 'NONE');
 
@@ -29,7 +33,8 @@ export default defineEventHandler(async (event) => {
             skills: skillsData || [],
             education: educationData || [],
             organizations: organizationsData || [],
-            certifications: certificationsData || []
+            certifications: certificationsData || [],
+            projects: projectsData || [] // Added projects
         };
     } catch (error) {
         console.error('CRITICAL API ERROR:', error);
