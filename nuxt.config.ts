@@ -9,6 +9,8 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
+    tursoUrl: process.env.TURSO_DB_URL,
+    tursoToken: process.env.TURSO_DB_AUTH_TOKEN,
   },
   app: {
     head: {
