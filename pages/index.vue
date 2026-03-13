@@ -1,4 +1,5 @@
 <script setup>
+import { Heart } from 'lucide-vue-next'
 const { data: portfolio, error } = await useFetch('/api/portfolio')
 
 // Intro State
@@ -135,8 +136,8 @@ watch(isIntroDone, (done) => {
                     </div>
                 </div>
 
-                <p class="mt-32 font-black tracking-widest uppercase text-xs opacity-40 italic">
-                    © 2026 MUHAMMAD NABIL AMANI. DESIGNED WITH ❤️ AND A LOT OF COFFEE.
+                <p class="mt-32 font-black tracking-widest uppercase text-xs opacity-40 italic flex items-center justify-center gap-1.5 flex-wrap">
+                    © 2026 MUHAMMAD NABIL AMANI. DESIGNED WITH <Heart :size="12" class="fill-current" /> AND A LOT OF COFFEE.
                 </p>
             </div>
         </div>

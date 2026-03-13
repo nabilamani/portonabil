@@ -1,4 +1,5 @@
 <script setup>
+import { Building2 } from 'lucide-vue-next'
 const props = defineProps(['experiences'])
 const colors = ['card-purple', 'card-pink', 'card-yellow', 'card-green', 'card-blue']
 </script>
@@ -18,7 +19,7 @@ const colors = ['card-purple', 'card-pink', 'card-yellow', 'card-green', 'card-b
 
         <div class="flex flex-col md:flex-row gap-8 mb-8">
             <div class="w-16 h-16 bg-white border-4 border-black rounded-2xl flex items-center justify-center shrink-0 -rotate-6 group-hover:rotate-0 transition-transform">
-                <span class="text-3xl">🏢</span>
+                <Building2 :size="32" class="text-black" />
             </div>
             <div>
                 <h3 class="text-2xl md:text-4xl text-white mb-2">{{ exp.company }}</h3>

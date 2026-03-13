@@ -1,4 +1,5 @@
 <script setup>
+import { GraduationCap } from 'lucide-vue-next'
 defineProps(['education', 'organizations', 'certifications'])
 </script>
 
@@ -8,7 +9,9 @@ defineProps(['education', 'organizations', 'certifications'])
         <h2 class="section-title mb-12 md:mb-24 reveal-text">PENDIDIKAN</h2>
         <div class="grid md:grid-cols-2 gap-12 lg:gap-16">
           <div v-for="item in education" :key="item.id" class="brutalist-card card-blue bg-neutral-900 group overflow-visible reveal-text">
-            <div class="absolute -top-4 -left-3 md:-left-4 w-10 h-10 md:w-12 md:h-12 bg-soft-blue border-[3px] md:border-4 border-black rounded-full flex items-center justify-center text-xl md:text-2xl z-20">🎓</div>
+            <div class="absolute -top-4 -left-3 md:-left-4 w-10 h-10 md:w-12 md:h-12 bg-soft-blue border-[3px] md:border-4 border-black rounded-full flex items-center justify-center text-xl md:text-2xl z-20">
+              <GraduationCap :size="24" class="text-black" />
+            </div>
             <h3 class="text-2xl md:text-3xl mb-4 pt-4">{{ item.institution }}</h3>
             <p class="font-bold text-soft-purple text-lg md:text-xl mb-6">{{ item.degree }} <span v-if="item.gpa" class="text-white/40 block md:inline md:ml-2">| IPK {{ item.gpa }}</span></p>
             <div class="bg-white text-black px-3 py-1 md:px-4 md:py-1 inline-block text-xs md:text-base font-black rounded-lg skew-x-[-10deg]">{{ item.period }}</div>

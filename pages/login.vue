@@ -5,6 +5,11 @@ const error = ref('')
 const { fetch: refreshSession } = useUserSession()
 
 async function login() {
+  if (!password.value) {
+    error.value = 'PASSWORD TIDAK BOLEH KOSONG!'
+    return
+  }
+
   try {
     await $fetch('/api/login', {
       method: 'POST',
@@ -13,7 +18,11 @@ async function login() {
     await refreshSession()
     navigateTo('/admin')
   } catch (e) {
-    error.value = 'SALAH PASSWORD, COBA LAGI!'
+    if (e.statusCode === 401) {
+      error.value = 'SALAH PASSWORD, COBA LAGI!'
+    } else {
+      error.value = 'TERJADI KESALAHAN, COBA LAGI!'
+    }
   }
 }
 </script>

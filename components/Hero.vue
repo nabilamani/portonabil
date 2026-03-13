@@ -1,5 +1,6 @@
 <script setup>
 import gsap from 'gsap'
+import { Sparkles } from 'lucide-vue-next'
 
 const props = defineProps(['profile'])
 
@@ -47,8 +48,8 @@ onMounted(() => {
     <div class="absolute bottom-20 right-[40%] w-16 h-16 bg-soft-yellow border-4 border-black -rotate-12 rounded-2xl hidden md:block"></div>
 
     <div class="relative z-10">
-        <div class="hero-badge inline-block px-4 py-1.5 md:px-6 md:py-2 bg-soft-green border-[3px] md:border-4 border-black text-black font-black uppercase text-sm md:text-lg rounded-full mb-6 md:mb-8 transform -rotate-2 hover:rotate-0 transition-transform cursor-default">
-            ✨ AVAILABLE FOR WORK
+        <div class="hero-badge inline-flex items-center gap-2 px-4 py-1.5 md:px-6 md:py-2 bg-soft-green border-[3px] md:border-4 border-black text-black font-black uppercase text-sm md:text-lg rounded-full mb-6 md:mb-8 transform -rotate-2 hover:rotate-0 transition-transform cursor-default">
+            <Sparkles :size="18" class="fill-current" /> AVAILABLE FOR WORK
         </div>
         
         <h1 class="text-5xl sm:text-6xl md:text-[8rem] lg:text-[10rem] leading-[0.85] text-white font-black">
