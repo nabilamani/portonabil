@@ -1,4 +1,6 @@
 <script setup>
+import { MessageSquare, Settings2 } from 'lucide-vue-next'
+
 definePageMeta({
   middleware: 'auth'
 })
@@ -286,7 +288,7 @@ const { clear: clearSession } = useUserSession()
 async function logout() {
     await $fetch('/api/logout', { method: 'POST' })
     await clearSession()
-    navigateTo('/login')
+    window.location.href = '/login'
 }
 </script>
 
@@ -313,7 +315,11 @@ async function logout() {
                 class="brutalist-btn text-xs"
                 :class="activeTab === tab ? 'bg-accent' : 'bg-white opacity-50'"
             >
-                {{ tab === 'chat' ? '💬 Chat' : tab }}
+                <div v-if="tab === 'chat'" class="flex items-center gap-1.5">
+                  <MessageSquare :size="14" />
+                  Chat
+                </div>
+                <template v-else>{{ tab }}</template>
                 <span v-if="tab === 'chat' && chatSessions.filter(s => s.totalMessages > 0).length > 0" class="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">
                   {{ chatSessions.filter(s => s.totalMessages > 0).length }}
                 </span>
@@ -500,7 +506,10 @@ async function logout() {
                 <!-- Session List -->
                 <div class="lg:col-span-1 border-4 border-white rounded-2xl overflow-hidden flex flex-col">
                   <div class="px-4 py-3 bg-white/10 border-b-2 border-white/20 flex items-center justify-between">
-                    <p class="font-black uppercase text-sm">💬 Percakapan</p>
+                    <div class="flex items-center gap-1.5 font-black uppercase text-sm">
+                      <MessageSquare :size="16" />
+                      Percakapan
+                    </div>
                     <span class="text-xs text-white/40">{{ chatSessions.length }} sesi</span>
                   </div>
                   <div class="flex-1 overflow-y-auto">
@@ -555,8 +564,9 @@ async function logout() {
                                 : 'bg-white text-black rounded-tl-sm'
                             ]"
                           >{{ msg.content }}</div>
-                          <p class="text-[10px] text-white/40" :class="msg.senderType === 'admin' ? 'text-right' : 'text-left'">
-                            {{ msg.senderType === 'admin' ? '🛠️ Admin' : selectedChatSession.visitorName }} · {{ formatChatTime(msg.createdAt) }}
+                          <p class="text-[10px] text-white/40 flex items-center gap-1" :class="msg.senderType === 'admin' ? 'justify-end' : 'justify-start'">
+                            <Settings2 v-if="msg.senderType === 'admin'" :size="10" />
+                            {{ msg.senderType === 'admin' ? 'Admin' : selectedChatSession.visitorName }} · {{ formatChatTime(msg.createdAt) }}
                           </p>
                         </div>
                       </div>

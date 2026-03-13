@@ -1,5 +1,5 @@
 <script setup>
-import { MessageSquare, X, Send, User, ChevronDown } from 'lucide-vue-next'
+import { MessageSquare, X, Send, User, ChevronDown, Rocket } from 'lucide-vue-next'
 
 // --- State ---
 const isOpen = ref(false)
@@ -226,9 +226,15 @@ function formatTime(ts) {
             <button
               @click="startChat"
               :disabled="!nameInput.trim() || isStarting"
-              class="w-full bg-soft-green text-black font-black uppercase py-3 rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full bg-soft-green text-black font-black uppercase py-3 rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {{ isStarting ? 'Memulai...' : '🚀 Mulai Chat' }}
+              <template v-if="isStarting">
+                Memulai...
+              </template>
+              <template v-else>
+                <Rocket :size="18" />
+                Mulai Chat
+              </template>
             </button>
           </div>
         </div>
