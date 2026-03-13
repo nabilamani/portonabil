@@ -65,3 +65,18 @@ export const projects = sqliteTable('projects', {
     imageUrl: text('image_url'), 
     order: integer('order').default(0),
 });
+
+export const chatSessions = sqliteTable('chat_sessions', {
+    id: text('id').primaryKey(), // UUID
+    visitorName: text('visitor_name').notNull(),
+    createdAt: integer('created_at').notNull(), // Unix timestamp
+    isOpen: integer('is_open', { mode: 'boolean' }).default(true),
+});
+
+export const chatMessages = sqliteTable('chat_messages', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    sessionId: text('session_id').notNull().references(() => chatSessions.id),
+    content: text('content').notNull(),
+    senderType: text('sender_type').notNull(), // 'visitor' | 'admin'
+    createdAt: integer('created_at').notNull(), // Unix timestamp
+});

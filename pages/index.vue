@@ -141,5 +141,8 @@ watch(isIntroDone, (done) => {
             </div>
         </div>
     </footer>
+
+    <!-- Live Chat Widget -->
+    <ChatWidget />
   </div>
 </template>

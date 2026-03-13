@@ -11,6 +11,10 @@
 }
 
 @layer base {
+  html, body {
+    @apply overflow-x-hidden;
+  }
+  
   body {
     @apply bg-[#080808] text-white font-sans selection:bg-accent selection:text-black antialiased;
     background-image: radial-gradient(#ffffff10 1px, transparent 1px);

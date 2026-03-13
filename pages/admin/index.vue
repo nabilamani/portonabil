@@ -7,6 +7,80 @@ const { data: portfolio, refresh, pending } = await useFetch('/api/portfolio')
 const activeTab = ref('profile')
 const isSaving = ref(false)
 
+// --- Chat Admin ---
+const chatSessions = ref([])
+const selectedChatSession = ref(null)
+const chatMessages = ref([])
+const adminReply = ref('')
+const isSendingReply = ref(false)
+const isChatLoading = ref(false)
+let chatPollTimer = null
+
+watch(activeTab, (tab) => {
+  if (tab === 'chat') {
+    loadChatSessions()
+    chatPollTimer = setInterval(loadChatSessions, 5000)
+  } else {
+    if (chatPollTimer) clearInterval(chatPollTimer)
+  }
+})
+
+async function loadChatSessions() {
+  isChatLoading.value = true
+  try {
+    chatSessions.value = await $fetch('/api/chat/sessions')
+    // If a session is selected, refresh its messages too
+    if (selectedChatSession.value) {
+      await loadChatMessages(selectedChatSession.value.id)
+    }
+  } finally {
+    isChatLoading.value = false
+  }
+}
+
+async function loadChatMessages(sessionId) {
+  const res = await $fetch(`/api/chat/messages?sessionId=${sessionId}`)
+  chatMessages.value = res.messages || []
+  setTimeout(() => {
+    const el = document.getElementById('admin-chat-end')
+    el?.scrollIntoView({ behavior: 'smooth' })
+  }, 50)
+}
+
+async function selectChatSession(session) {
+  selectedChatSession.value = session
+  await loadChatMessages(session.id)
+}
+
+async function sendAdminReply() {
+  if (!adminReply.value.trim() || isSendingReply.value || !selectedChatSession.value) return
+  isSendingReply.value = true
+  try {
+    await $fetch('/api/chat/messages', {
+      method: 'POST',
+      body: { sessionId: selectedChatSession.value.id, content: adminReply.value.trim(), senderType: 'admin' }
+    })
+    adminReply.value = ''
+    await loadChatMessages(selectedChatSession.value.id)
+  } finally {
+    isSendingReply.value = false
+  }
+}
+
+async function deleteChatSession(sessionId) {
+  if (!confirm('Hapus sesi chat ini?')) return
+  await $fetch(`/api/chat/sessions?id=${sessionId}`, { method: 'DELETE' })
+  if (selectedChatSession.value?.id === sessionId) {
+    selectedChatSession.value = null
+    chatMessages.value = []
+  }
+  await loadChatSessions()
+}
+
+function formatChatTime(ts) {
+  return new Date(ts * 1000).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
 async function updateProfile() {
   isSaving.value = true
   try {
@@ -233,13 +307,16 @@ async function logout() {
 
     <div class="p-8">
         <div class="flex flex-wrap gap-4 mb-12">
-            <button v-for="tab in ['profile', 'projects', 'experiences', 'skills', 'education', 'organizations', 'certifications']" 
+            <button v-for="tab in ['profile', 'projects', 'experiences', 'skills', 'education', 'organizations', 'certifications', 'chat']" 
                 :key="tab"
                 @click="activeTab = tab"
                 class="brutalist-btn text-xs"
                 :class="activeTab === tab ? 'bg-accent' : 'bg-white opacity-50'"
             >
-                {{ tab }}
+                {{ tab === 'chat' ? '💬 Chat' : tab }}
+                <span v-if="tab === 'chat' && chatSessions.filter(s => s.totalMessages > 0).length > 0" class="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">
+                  {{ chatSessions.filter(s => s.totalMessages > 0).length }}
+                </span>
             </button>
         </div>
 
@@ -414,6 +491,98 @@ async function logout() {
                         <button @click="deleteCert(cert.id)" class="brutalist-btn bg-red-600 text-white font-sans">DELETE</button>
                     </div>
                 </div>
+            </section>
+
+            <!-- Chat Manager -->
+            <section v-if="activeTab === 'chat'" class="space-y-6">
+              <div class="grid lg:grid-cols-3 gap-6 h-[70vh]">
+
+                <!-- Session List -->
+                <div class="lg:col-span-1 border-4 border-white rounded-2xl overflow-hidden flex flex-col">
+                  <div class="px-4 py-3 bg-white/10 border-b-2 border-white/20 flex items-center justify-between">
+                    <p class="font-black uppercase text-sm">💬 Percakapan</p>
+                    <span class="text-xs text-white/40">{{ chatSessions.length }} sesi</span>
+                  </div>
+                  <div class="flex-1 overflow-y-auto">
+                    <div v-if="chatSessions.length === 0" class="p-6 text-center text-white/40 text-sm font-bold">
+                      Belum ada percakapan.
+                    </div>
+                    <button
+                      v-for="session in chatSessions"
+                      :key="session.id"
+                      @click="selectChatSession(session)"
+                      class="w-full text-left px-4 py-3 border-b border-white/10 hover:bg-white/5 transition-colors"
+                      :class="selectedChatSession?.id === session.id ? 'bg-soft-purple/20 border-l-4 border-l-soft-purple' : ''"
+                    >
+                      <div class="flex items-center justify-between">
+                        <p class="font-black text-sm text-white">{{ session.visitorName }}</p>
+                        <span class="text-[10px] text-white/30">{{ formatChatTime(session.createdAt) }}</span>
+                      </div>
+                      <p v-if="session.lastMessage" class="text-xs text-white/50 mt-1 truncate">{{ session.lastMessage.content }}</p>
+                      <div class="flex items-center gap-2 mt-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="session.lastMessage?.senderType === 'visitor' ? 'bg-soft-yellow/20 text-soft-yellow' : 'bg-soft-green/20 text-soft-green'">
+                          {{ session.totalMessages }} pesan
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Message View -->
+                <div class="lg:col-span-2 border-4 border-white rounded-2xl overflow-hidden flex flex-col">
+                  <div v-if="!selectedChatSession" class="flex-1 flex items-center justify-center">
+                    <p class="text-white/30 font-bold text-center">Pilih sesi chat untuk melihat<br>dan membalas pesan.</p>
+                  </div>
+                  <template v-else>
+                    <!-- Chat Header -->
+                    <div class="px-5 py-3 bg-white/10 border-b-2 border-white/20 flex items-center justify-between">
+                      <div>
+                        <p class="font-black text-sm">{{ selectedChatSession.visitorName }}</p>
+                        <p class="text-xs text-white/40">Mulai: {{ formatChatTime(selectedChatSession.createdAt) }}</p>
+                      </div>
+                      <button @click="deleteChatSession(selectedChatSession.id)" class="text-xs font-black text-red-400 hover:underline uppercase">Hapus Sesi</button>
+                    </div>
+
+                    <!-- Messages -->
+                    <div class="flex-1 overflow-y-auto p-5 space-y-3">
+                      <div v-for="msg in chatMessages" :key="msg.id" class="flex" :class="msg.senderType === 'admin' ? 'justify-end' : 'justify-start'">
+                        <div class="max-w-[75%] space-y-1">
+                          <div
+                            :class="[
+                              'px-4 py-2.5 rounded-2xl text-sm font-medium leading-relaxed border-2 border-black',
+                              msg.senderType === 'admin'
+                                ? 'bg-soft-purple text-white rounded-tr-sm'
+                                : 'bg-white text-black rounded-tl-sm'
+                            ]"
+                          >{{ msg.content }}</div>
+                          <p class="text-[10px] text-white/40" :class="msg.senderType === 'admin' ? 'text-right' : 'text-left'">
+                            {{ msg.senderType === 'admin' ? '🛠️ Admin' : selectedChatSession.visitorName }} · {{ formatChatTime(msg.createdAt) }}
+                          </p>
+                        </div>
+                      </div>
+                      <div id="admin-chat-end"></div>
+                    </div>
+
+                    <!-- Reply Input -->
+                    <div class="border-t-2 border-white/20 p-4 flex gap-3">
+                      <input
+                        v-model="adminReply"
+                        @keydown.enter.prevent="sendAdminReply"
+                        type="text"
+                        placeholder="Ketik balasan..."
+                        class="flex-1 bg-black border-[3px] border-white/30 focus:border-accent rounded-xl px-4 py-3 text-white font-medium text-sm outline-none transition-colors"
+                      />
+                      <button
+                        @click="sendAdminReply"
+                        :disabled="!adminReply.trim() || isSendingReply"
+                        class="brutalist-btn bg-accent text-black text-xs font-black px-6 disabled:opacity-40"
+                      >
+                        {{ isSendingReply ? '...' : 'Kirim' }}
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </div>
             </section>
         </div>
     </div>
