@@ -47,32 +47,31 @@ onMounted(() => {
     <div class="absolute bottom-20 right-[40%] w-16 h-16 bg-soft-yellow border-4 border-black -rotate-12 rounded-2xl hidden md:block"></div>
 
     <div class="relative z-10">
-        <div class="hero-badge inline-block px-6 py-2 bg-soft-green border-4 border-black text-black font-black uppercase text-lg rounded-full mb-8 transform -rotate-2 hover:rotate-0 transition-transform cursor-default">
+        <div class="hero-badge inline-block px-4 py-1.5 md:px-6 md:py-2 bg-soft-green border-[3px] md:border-4 border-black text-black font-black uppercase text-sm md:text-lg rounded-full mb-6 md:mb-8 transform -rotate-2 hover:rotate-0 transition-transform cursor-default">
             ✨ AVAILABLE FOR WORK
         </div>
         
-        <h1 class="text-6xl md:text-[8rem] xl:text-[10rem] leading-[0.85] text-white font-black">
+        <h1 class="text-5xl sm:text-6xl md:text-[8rem] lg:text-[10rem] leading-[0.85] text-white font-black">
             <div class="hero-name-line">{{ firstName }}</div>
             <div v-if="lastName" class="hero-name-line">
-              <span class="text-soft-purple bg-white border-4 border-black px-4 py-2 inline-block rounded-3xl mt-4 transform rotate-1 shadow-[10px_10px_0px_0px_rgba(167,139,250,1)]">{{ lastName }}</span>
+              <span class="text-soft-purple bg-white border-[3px] md:border-4 border-black px-3 py-1 md:px-6 md:py-3 inline-block rounded-2xl md:rounded-3xl mt-2 md:mt-4 transform rotate-1 shadow-[6px_6px_0px_0px_rgba(167,139,250,1)] md:shadow-[12px_12px_0px_0px_rgba(167,139,250,1)]">{{ lastName }}</span>
             </div>
         </h1>
-
-        <div class="hero-desc mt-12 flex flex-col md:flex-row items-start md:items-center gap-8">
-            <p class="text-2xl md:text-4xl max-w-2xl font-bold leading-tight">
+        <div class="hero-desc mt-8 md:mt-12 flex flex-col md:flex-row items-start md:items-center gap-8">
+            <p class="text-xl md:text-3xl lg:text-4xl max-w-2xl font-bold leading-tight">
                 {{ profile.role || 'Developer' }} based in Indonesia. 
-                <span class="text-soft-yellow underline decoration-wavy decoration-4">Crafting premium digital experiences.</span>
+                <span class="text-soft-yellow underline decoration-wavy decoration-2 md:decoration-4">Crafting premium digital experiences.</span>
             </p>
         </div>
         
-        <div class="mt-16 flex flex-wrap gap-8">
-            <div class="hero-stack-card brutalist-card card-purple scale-95 hover:scale-100">
-                <span class="block text-white font-black text-3xl">PHP & JS</span>
-                <span class="text-sm uppercase font-bold opacity-60 italic">Core Stack</span>
+        <div class="mt-8 md:mt-16 flex flex-wrap gap-4 md:gap-8">
+            <div class="hero-stack-card brutalist-card card-purple scale-90 md:scale-95 hover:scale-100">
+                <span class="block text-white font-black text-2xl md:text-3xl">PHP & JS</span>
+                <span class="text-xs md:text-sm uppercase font-bold opacity-60 italic">Core Stack</span>
             </div>
-            <div class="hero-stack-card brutalist-card card-yellow scale-95 hover:scale-100">
-                <span class="block text-white font-black text-3xl">REACT & LARAVEL</span>
-                <span class="text-sm uppercase font-bold opacity-60 italic">Tools of Choice</span>
+            <div class="hero-stack-card brutalist-card card-yellow scale-90 md:scale-95 hover:scale-100">
+                <span class="block text-white font-black text-2xl md:text-3xl">REACT & LARAVEL</span>
+                <span class="text-xs md:text-sm uppercase font-bold opacity-60 italic">Tools of Choice</span>
             </div>
         </div>
     </div>

@@ -16,20 +16,20 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="w-screen relative left-1/2 -translate-x-1/2 py-24 overflow-hidden select-none pointer-events-none">
+  <div class="w-screen relative left-1/2 -translate-x-1/2 py-12 md:py-24 overflow-hidden select-none pointer-events-none">
     <!-- Strip 1 (Slanted Down) -->
-    <div class="marquee-strip h-20 flex items-center border-y-4 border-black rotate-[2deg] z-20 absolute left-[-10%] right-[-10%]" :class="color1">
+    <div class="marquee-strip h-12 md:h-20 flex items-center border-y-[3px] md:border-y-4 border-black rotate-[2deg] z-20 absolute left-[-10%] right-[-10%]" :class="color1">
       <div class="marquee-content whitespace-nowrap flex gap-8 py-2">
-        <span v-for="i in 4" :key="i" class="text-4xl font-black text-black uppercase tracking-tighter">
+        <span v-for="i in 4" :key="i" class="text-2xl md:text-4xl font-black text-black uppercase tracking-tighter">
           {{ text }}
         </span>
       </div>
     </div>
 
     <!-- Strip 2 (Slanted Up) -->
-    <div class="marquee-strip-reverse h-20 flex items-center border-y-4 border-black -rotate-[2deg] z-10 absolute left-[-10%] right-[-10%]" :class="color2">
+    <div class="marquee-strip-reverse h-12 md:h-20 flex items-center border-y-[3px] md:border-y-4 border-black -rotate-[2deg] z-10 absolute left-[-10%] right-[-10%]" :class="color2">
       <div class="marquee-content-reverse whitespace-nowrap flex gap-8 py-2">
-        <span v-for="i in 4" :key="i" class="text-4xl font-black text-black uppercase tracking-tighter">
+        <span v-for="i in 4" :key="i" class="text-2xl md:text-4xl font-black text-black uppercase tracking-tighter">
           {{ text }}
         </span>
       </div>

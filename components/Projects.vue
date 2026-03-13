@@ -58,7 +58,7 @@ function closeDetail() {
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div v-for="project in displayedProjects" :key="project.id" 
         @click="openDetail(project)"
-        class="brutalist-card bg-neutral-900 border-white/10 group cursor-pointer hover:border-soft-purple hover:-translate-y-2 transition-all p-4 reveal-text"
+        class="brutalist-card bg-neutral-900 border-white/10 group cursor-pointer hover:border-soft-purple hover:-translate-y-2 transition-all p-3 md:p-4 reveal-text"
       >
         <div class="aspect-video bg-neutral-800 rounded-xl overflow-hidden mb-6 border-2 border-black relative">
             <img v-if="project.imageUrl" :src="project.imageUrl" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -111,7 +111,7 @@ function closeDetail() {
     <!-- Project Detail Overlay (Modal) -->
     <Teleport to="body">
       <div v-if="selectedProject" 
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-8"
       >
         <!-- Overlay Backdrop -->
         <div @click="closeDetail" class="absolute inset-0 bg-black/90 backdrop-blur-md cursor-zoom-out"></div>
@@ -119,11 +119,12 @@ function closeDetail() {
         <!-- Big Detail Container -->
         <div class="brutalist-card bg-[#0a0a0a] border-white/20 w-full max-w-7xl h-full max-h-[90vh] overflow-y-auto relative z-10 custom-scrollbar">
             <!-- Close Button -->
-            <button @click="closeDetail" class="absolute top-6 right-6 z-20 w-12 h-12 bg-white text-black border-4 border-black rounded-full font-black hover:bg-soft-purple hover:scale-110 transition-all flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <X :size="24" stroke-width="3" />
+            <button @click="closeDetail" class="absolute top-4 right-4 md:top-6 md:right-6 z-20 w-10 h-10 md:w-12 md:h-12 bg-white text-black border-[3px] md:border-4 border-black rounded-full font-black hover:bg-soft-purple hover:scale-110 transition-all flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <X :size="20" class="md:hidden" stroke-width="3" />
+                <X :size="24" class="hidden md:block" stroke-width="3" />
             </button>
 
-            <div class="p-8 md:p-12">
+            <div class="p-5 md:p-12">
                 <div class="grid lg:grid-cols-2 gap-16 items-start">
                     <!-- Text Content -->
                     <div class="space-y-8">
@@ -131,7 +132,7 @@ function closeDetail() {
                             PROJECT OVERVIEW
                         </div>
                         
-                        <h3 class="text-4xl md:text-6xl font-black text-white leading-tight uppercase tracking-tighter">
+                        <h3 class="text-3xl md:text-6xl font-black text-white leading-tight uppercase tracking-tighter">
                             {{ selectedProject.title }}
                         </h3>
                         
@@ -170,16 +171,16 @@ function closeDetail() {
                         <!-- Actions -->
                         <div class="flex flex-wrap gap-6 pt-4">
                             <a :href="selectedProject.demoUrl" target="_blank" v-if="selectedProject.demoUrl"
-                            class="brutalist-btn bg-soft-purple text-black font-black flex items-center gap-2 group/btn"
+                            class="brutalist-btn bg-soft-purple text-black font-black flex items-center gap-2 group/btn text-sm md:text-base px-6 md:px-8 py-2 md:py-3"
                             >
                             <span>VISIT LIVE DEMO</span>
-                            <ExternalLink :size="18" class="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                            <ExternalLink :size="16" class="md:size-[18px] group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                             </a>
                             <a :href="selectedProject.githubUrl" target="_blank" v-if="selectedProject.githubUrl"
-                            class="brutalist-btn bg-black text-white border-white flex items-center gap-2 group/btn"
+                            class="brutalist-btn bg-black text-white border-white flex items-center gap-2 group/btn text-sm md:text-base px-6 md:px-8 py-2 md:py-3"
                             >
                             <span>GITHUB SOURCE</span>
-                            <Github :size="18" class="opacity-50 group-hover/btn:scale-110 transition-transform" />
+                            <Github :size="16" class="md:size-[18px] opacity-50 group-hover/btn:scale-110 transition-transform" />
                             </a>
                         </div>
 
