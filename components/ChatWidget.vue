@@ -75,7 +75,7 @@ async function sendSystemGreeting() {
     method: 'POST',
     body: {
       sessionId: sessionId.value,
-      content: `Halo ${visitorName.value}! 👋 Terima kasih sudah menghubungi. Pesan Anda telah diterima dan saya akan segera membalas! - Nabil`,
+      content: `Halo ${visitorName.value}! Terima kasih sudah menghubungi. Pesan Anda telah diterima dan saya akan segera membalas! - Nabil`,
       senderType: 'admin'
     }
   })
