@@ -1,5 +1,6 @@
 <template>
   <div>
+    <AnimatedBackground />
     <NuxtLoadingIndicator />
     <NuxtPage />
   </div>
