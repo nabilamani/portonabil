@@ -1,27 +1,5 @@
 <script setup>
-import gsap from 'gsap'
 defineProps(['profile'])
-
-onMounted(() => {
-    // Sticker Rotation Loop
-    gsap.to('.about-sticker', {
-        rotate: 15,
-        yoyo: true,
-        repeat: -1,
-        duration: 1.5,
-        ease: 'sine.inOut'
-    })
-
-    // Morph Shape Animation
-    gsap.set('.about-morph-circle', { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' })
-    gsap.to('.about-morph-circle', {
-        borderRadius: '30% 60% 70% 40% / 50% 60% 30% 60%',
-        rotate: 360,
-        duration: 8,
-        ease: 'linear',
-        repeat: -1
-    })
-})
 </script>
 
 <template>
@@ -33,8 +11,8 @@ onMounted(() => {
     
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
       <div class="relative group reveal-text">
-        <!-- Floating Sticker (Animated via GSAP) -->
-        <div class="about-sticker absolute -top-12 -left-8 z-20 bg-soft-yellow border-4 border-black px-4 py-2 font-black rounded-xl rotate-[-15deg]">
+        <!-- Floating Sticker -->
+        <div class="absolute -top-12 -left-8 z-20 bg-soft-yellow border-4 border-black px-4 py-2 font-black rounded-xl rotate-[-15deg] group-hover:rotate-0 transition-transform">
             👋 HELLO!
         </div>
 
@@ -50,19 +28,13 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Decorative Morphing Circle Behind -->
-        <div class="about-morph-circle absolute -bottom-10 -right-10 w-48 h-48 border-8 border-soft-blue -z-10 opacity-50"></div>
+        <!-- Decorative Circle Behind -->
+        <div class="absolute -bottom-10 -right-10 w-48 h-48 border-8 border-soft-blue rounded-full -z-10 opacity-50"></div>
       </div>
 
       <div class="space-y-10">
         <div class="relative reveal-text">
-            <h3 class="text-2xl md:text-3xl font-black text-soft-green mb-4 relative inline-block">
-              PROFIL SINGKAT
-              <!-- Line Drawing under heading (using CSS transition trigger logic) -->
-              <svg class="absolute w-[110%] h-[120%] -left-[5%] top-0 -z-10 pointer-events-none" viewBox="0 0 200 40" preserveAspectRatio="none">
-                <path class="draw-path" d="M10,35 Q 100,25 190,35" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
-              </svg>
-            </h3>
+            <h3 class="text-2xl md:text-3xl font-black text-soft-green mb-4 inline-block underline decoration-4 decoration-white">PROFIL SINGKAT</h3>
             <div class="text-lg md:text-2xl leading-relaxed font-medium text-white/90 bg-neutral-900/50 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-white/10" v-html="profile.description"></div>
         </div>
 
