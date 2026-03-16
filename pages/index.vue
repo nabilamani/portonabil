@@ -91,7 +91,7 @@ watch(isIntroDone, (done) => {
       </div>
     </header>
 
-    <main class="container mx-auto px-4 pt-32 pb-20 space-y-64">
+    <main class="container mx-auto px-4 pt-32 pb-20 space-y-32 md:space-y-64">
       <Hero :profile="portfolio.profile" />
       <About id="about" :profile="portfolio.profile" />
       <Projects id="projects" :projects="portfolio.projects" />
@@ -109,11 +109,11 @@ watch(isIntroDone, (done) => {
       />
     </main>
 
-    <footer class="mt-64 relative overflow-hidden">
+    <footer class="mt-32 md:mt-64 relative overflow-hidden">
         <!-- Squiggle Spacer -->
         <div class="squiggle opacity-50 mb-20"></div>
 
-        <div class="bg-white text-black py-32 px-4 border-t-8 border-black">
+        <div class="bg-white text-black py-16 md:py-32 px-4 border-t-8 border-black">
             <div class="container mx-auto text-center">
                 <div class="inline-block px-8 py-2 bg-soft-purple border-4 border-black text-black font-black uppercase text-2xl rounded-2xl mb-12 rotate-2">
                     KEEPIN' IN TOUCH

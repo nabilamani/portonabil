@@ -4,7 +4,7 @@ defineProps(['education', 'organizations', 'certifications'])
 </script>
 
 <template>
-  <section v-if="education" class="max-w-6xl mx-auto px-4 py-16 md:py-32 space-y-20 md:space-y-40">
+  <section v-if="education" class="max-w-6xl mx-auto px-4 py-12 md:py-32 space-y-16 md:space-y-40">
     <div>
         <h2 class="section-title mb-12 md:mb-24 reveal-text">PENDIDIKAN</h2>
         <div class="grid md:grid-cols-2 gap-12 lg:gap-16">

@@ -52,7 +52,7 @@ function closeDetail() {
   <section class="relative">
     <div class="absolute -top-24 -left-20 w-64 h-64 bg-soft-purple opacity-10 rounded-full blur-[100px] -z-10"></div>
     
-    <h2 class="section-title mb-24 bg-soft-blue reveal-text">MY PROJECTS</h2>
+    <h2 class="section-title mb-16 md:mb-24 bg-soft-blue reveal-text">MY PROJECTS</h2>
 
     <!-- Project Grid -->
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

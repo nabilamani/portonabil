@@ -6,11 +6,11 @@ const softwareSkills = computed(() => props.skills?.filter(s => s.category === '
 </script>
 
 <template>
-  <section v-if="skills" class="max-w-6xl mx-auto px-4 py-16 md:py-32 relative overflow-hidden">
+  <section v-if="skills" class="max-w-6xl mx-auto px-4 py-12 md:py-32 relative overflow-hidden">
     <!-- Background Decoration -->
     <div class="absolute top-0 right-0 w-64 h-64 bg-soft-green opacity-5 rounded-full blur-3xl -z-10"></div>
     
-    <h2 class="section-title mb-16 md:mb-24 bg-soft-green reveal-text">MY SKILL SET</h2>
+    <h2 class="section-title mb-12 md:mb-24 bg-soft-green reveal-text">MY SKILL SET</h2>
     
     <div class="grid md:grid-cols-2 gap-16 lg:gap-20">
       <!-- HARD SKILLS -->
