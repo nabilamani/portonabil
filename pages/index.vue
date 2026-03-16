@@ -67,7 +67,7 @@ watch(isIntroDone, (done) => {
         <div class="absolute top-[50%] left-[40%] w-72 h-72 bg-soft-yellow/5 rounded-full blur-[100px]"></div>
     </div>
 
-    <header class="p-6 sticky top-0 bg-[#080808]/80 backdrop-blur-xl z-50 border-b-4 border-black">
+    <header class="fixed top-0 w-full p-6 bg-[#080808]/80 backdrop-blur-xl z-[100] border-b-4 border-black transition-all">
       <div class="container mx-auto flex justify-between items-center">
         <div class="group cursor-default">
             <h1 class="text-4xl text-white group-hover:text-soft-purple transition-colors">MNA<span class="text-soft-yellow">.</span></h1>
@@ -91,7 +91,7 @@ watch(isIntroDone, (done) => {
       </div>
     </header>
 
-    <main class="container mx-auto px-4 py-20 space-y-64">
+    <main class="container mx-auto px-4 pt-32 pb-20 space-y-64">
       <Hero :profile="portfolio.profile" />
       <About id="about" :profile="portfolio.profile" />
       <Projects id="projects" :projects="portfolio.projects" />
