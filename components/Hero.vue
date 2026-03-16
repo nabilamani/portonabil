@@ -34,14 +34,49 @@ onMounted(() => {
       shadow: 'none'
     }, "-=0.6")
     .from('.scroll-indicator', { opacity: 0, y: -20 }, "-=0.4")
+    
+  // Line Drawing Animation (delayed slightly so it draws after text appears)
+  const path = document.querySelector('.hero-line-draw path')
+  if (path) {
+    const length = path.getTotalLength()
+    gsap.set(path, { strokeDasharray: length, strokeDashoffset: length })
+    tl.to(path, { strokeDashoffset: 0, duration: 1.5, ease: 'power2.inOut' }, "-=0.2")
+  }
+
+  // Icon Animation (Continuous Rotation)
+  gsap.to('.hero-sparkles', {
+    rotate: 360,
+    duration: 6,
+    ease: 'linear',
+    repeat: -1
+  })
+
+  // Morph Shape Animation (Organic Blobs)
+  gsap.set('.morph-shape-1', { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' })
+  gsap.to('.morph-shape-1', {
+    borderRadius: '30% 60% 70% 40% / 50% 60% 30% 60%',
+    duration: 3,
+    ease: 'sine.inOut',
+    yoyo: true,
+    repeat: -1
+  })
+
+  gsap.set('.morph-shape-2', { borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%' })
+  gsap.to('.morph-shape-2', {
+    borderRadius: '70% 30% 50% 50% / 30% 30% 70% 70%',
+    duration: 4,
+    ease: 'sine.inOut',
+    yoyo: true,
+    repeat: -1
+  })
 })
 </script>
 
 <template>
   <section v-if="profile" class="min-h-screen flex flex-col justify-center relative px-4">
-    <!-- Playful Background Shapes -->
-    <div class="absolute top-20 right-[10%] w-32 h-32 bg-soft-purple rounded-full blur-3xl opacity-30 animate-pulse"></div>
-    <div class="absolute bottom-40 left-[5%] w-64 h-64 bg-soft-blue rounded-full blur-3xl opacity-20"></div>
+    <!-- Playful Background Shapes (Morphed by GSAP) -->
+    <div class="morph-shape-1 absolute top-20 right-[10%] w-64 h-64 md:w-96 md:h-96 bg-soft-purple blur-3xl opacity-30"></div>
+    <div class="morph-shape-2 absolute bottom-40 left-[5%] w-72 h-72 md:w-[500px] md:h-[500px] bg-soft-blue blur-3xl opacity-20"></div>
     
     <!-- Floating Bricks -->
     <div class="absolute top-40 right-[20%] w-24 h-24 border-4 border-white rotate-12 rounded-3xl hidden md:block animate-bounce" style="animation-duration: 4s"></div>
@@ -49,7 +84,7 @@ onMounted(() => {
 
     <div class="relative z-10">
         <div class="hero-badge inline-flex items-center gap-2 px-4 py-1.5 md:px-6 md:py-2 bg-soft-green border-[3px] md:border-4 border-black text-black font-black uppercase text-sm md:text-lg rounded-full mb-6 md:mb-8 transform -rotate-2 hover:rotate-0 transition-transform cursor-default">
-            <Sparkles :size="18" class="fill-current" /> AVAILABLE FOR WORK
+            <Sparkles :size="18" class="hero-sparkles fill-current" /> AVAILABLE FOR WORK
         </div>
         
         <h1 class="text-5xl sm:text-6xl md:text-[8rem] lg:text-[10rem] leading-[0.85] text-white font-black">
@@ -60,8 +95,14 @@ onMounted(() => {
         </h1>
         <div class="hero-desc mt-8 md:mt-12 flex flex-col md:flex-row items-start md:items-center gap-8">
             <p class="text-xl md:text-3xl lg:text-4xl max-w-2xl font-bold leading-tight">
-                {{ profile.role || 'Developer' }} based in Indonesia. 
-                <span class="text-soft-yellow underline decoration-wavy decoration-2 md:decoration-4">Crafting premium digital experiences.</span>
+                {{ profile.role || 'Developer' }} based in Indonesia.<br class="hidden md:block">
+                <span class="relative inline-block mt-2 md:mt-4">
+                  <span class="relative z-10 text-soft-yellow">Crafting premium digital experiences.</span>
+                  <!-- SVG for Line Drawing Animation -->
+                  <svg class="hero-line-draw absolute w-[110%] h-[120%] -left-[5%] -top-[10%] -z-10 pointer-events-none" viewBox="0 0 400 60" preserveAspectRatio="none">
+                    <path d="M5,45 Q 200,65 395,20" fill="none" stroke="#FFFF00" stroke-width="8" stroke-linecap="round" />
+                  </svg>
+                </span>
             </p>
         </div>
         
