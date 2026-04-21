@@ -1,5 +1,5 @@
 <script setup>
-const roles = ['PECUT ENGINEER', 'UI/UX DESIGNER', 'CREATIVE CODER', 'WEB PROGRAMMER']
+const roles = ['PROMPT ENGINEER', 'UI/UX DESIGNER', 'CREATIVE CODER', 'WEB PROGRAMMER']
 const currentRoleIndex = ref(0)
 const isVisible = ref(true)
 

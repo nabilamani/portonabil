@@ -1,95 +1,104 @@
 <script setup>
-import { MessageSquare, Settings2 } from 'lucide-vue-next'
+import { 
+  MessageSquare, 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Eye, 
+  X, 
+  Save, 
+  ExternalLink,
+  Briefcase,
+  GraduationCap,
+  Award,
+  Users,
+  Code2,
+  User
+} from 'lucide-vue-next'
 
 definePageMeta({
   middleware: 'auth'
 })
 
-const { data: portfolio, refresh, pending } = await useFetch('/api/portfolio')
+const { data: portfolio, refresh } = await useFetch('/api/portfolio')
 const activeTab = ref('profile')
 const isSaving = ref(false)
 
-// --- Chat Admin ---
-const chatSessions = ref([])
-const selectedChatSession = ref(null)
-const chatMessages = ref([])
-const adminReply = ref('')
-const isSendingReply = ref(false)
-const isChatLoading = ref(false)
-let chatPollTimer = null
+// --- Modal System ---
+const isModalOpen = ref(false)
+const modalType = ref('') // 'projects', 'experiences', etc.
+const modalData = ref({})
+const isNewItem = ref(false)
 
-watch(activeTab, (tab) => {
-  if (tab === 'chat') {
-    loadChatSessions()
-    chatPollTimer = setInterval(loadChatSessions, 5000)
+function openModal(type, item = null) {
+  modalType.value = type
+  isNewItem.value = !item
+  
+  if (item) {
+    modalData.value = JSON.parse(JSON.stringify(item))
   } else {
-    if (chatPollTimer) clearInterval(chatPollTimer)
-  }
-})
-
-async function loadChatSessions() {
-  isChatLoading.value = true
-  try {
-    chatSessions.value = await $fetch('/api/chat/sessions')
-    // If a session is selected, refresh its messages too
-    if (selectedChatSession.value) {
-      await loadChatMessages(selectedChatSession.value.id)
+    // Default values for new items
+    const defaults = {
+      projects: { title: '', description: '', techs: '', order: 0, stats: '[]', features: '[]', demoUrl: '', githubUrl: '', credentials: '', imageUrl: '' },
+      experiences: { company: '', role: '', period: '', description: '', order: 0 },
+      education: { institution: '', degree: '', period: '', gpa: '' },
+      organizations: { org: '', role: '', period: '' },
+      certifications: { title: '', issuer: '', date: '' },
+      skills: { name: '', category: 'hard', order: 0 }
     }
-  } finally {
-    isChatLoading.value = false
+    modalData.value = defaults[type] || {}
   }
+  isModalOpen.value = true
 }
 
-async function loadChatMessages(sessionId) {
-  const res = await $fetch(`/api/chat/messages?sessionId=${sessionId}`)
-  chatMessages.value = res.messages || []
-  setTimeout(() => {
-    const el = document.getElementById('admin-chat-end')
-    el?.scrollIntoView({ behavior: 'smooth' })
-  }, 50)
+function closeModal() {
+  isModalOpen.value = false
+  modalData.value = {}
+  modalType.value = ''
 }
 
-async function selectChatSession(session) {
-  selectedChatSession.value = session
-  await loadChatMessages(session.id)
-}
-
-async function sendAdminReply() {
-  if (!adminReply.value.trim() || isSendingReply.value || !selectedChatSession.value) return
-  isSendingReply.value = true
+async function handleSave() {
+  isSaving.value = true
   try {
-    await $fetch('/api/chat/messages', {
-      method: 'POST',
-      body: { sessionId: selectedChatSession.value.id, content: adminReply.value.trim(), senderType: 'admin' }
+    const type = modalType.value
+    const item = modalData.value
+    const method = (item.id && !isNewItem.value) ? 'PATCH' : 'POST'
+    const endpoint = `/api/${type}`
+
+    await $fetch(endpoint, {
+      method,
+      body: item
     })
-    adminReply.value = ''
-    await loadChatMessages(selectedChatSession.value.id)
+    
+    await refresh()
+    closeModal()
+  } catch (e) {
+    alert('Gagal menyimpan: ' + e.message)
   } finally {
-    isSendingReply.value = false
+    isSaving.value = false
   }
 }
 
-async function deleteChatSession(sessionId) {
-  if (!confirm('Hapus sesi chat ini?')) return
-  await $fetch(`/api/chat/sessions?id=${sessionId}`, { method: 'DELETE' })
-  if (selectedChatSession.value?.id === sessionId) {
-    selectedChatSession.value = null
-    chatMessages.value = []
+async function deleteItem(type, id) {
+  if (!confirm(`Hapus item ini dari ${type}?`)) return
+  isSaving.value = true
+  try {
+    await $fetch(`/api/${type}?id=${id}`, { method: 'DELETE' })
+    await refresh()
+  } finally {
+    isSaving.value = false
   }
-  await loadChatSessions()
 }
 
-function formatChatTime(ts) {
-  return new Date(ts * 1000).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-}
-
-async function updateProfile() {
+// --- Profile Special ---
+async function saveProfile() {
   isSaving.value = true
   try {
     await $fetch('/api/profile', {
       method: 'PATCH',
       body: portfolio.value.profile
     })
+    alert('Profil diperbarui!')
     await refresh()
   } finally {
     isSaving.value = false
@@ -99,508 +108,445 @@ async function updateProfile() {
 async function onPhotoSelected(e) {
   const file = e.target.files[0]
   if (!file) return
+  if (file.size > 2 * 1024 * 1024) return alert('Maks 2MB')
   
-  if (file.size > 2 * 1024 * 1024) {
-    alert('File terlalu besar! Maksimal 2MB.')
-    return
-  }
-
   const reader = new FileReader()
   reader.onload = async (event) => {
     portfolio.value.profile.photoUrl = event.target.result
-    // Auto save photo URL to DB
-    await updateProfile()
+    await saveProfile()
   }
   reader.readAsDataURL(file)
 }
 
-async function saveExperience(exp) {
-    isSaving.value = true
-    try {
-        if (exp.id) {
-            await $fetch('/api/experiences', { method: 'PATCH', body: exp })
-        } else {
-            await $fetch('/api/experiences', { method: 'POST', body: exp })
-        }
-        await refresh()
-    } finally {
-        isSaving.value = false
-    }
-}
-
-async function deleteExperience(id) {
-    if (confirm('Delete this experience?')) {
-        isSaving.value = true
-        try {
-            await $fetch(`/api/experiences?id=${id}`, { method: 'DELETE' })
-            await refresh()
-        } finally {
-            isSaving.value = false
-        }
-    }
-}
-
-async function addSkill(category) {
-    const name = prompt(`Add new ${category} skill:`)
-    if (name) {
-        isSaving.value = true
-        try {
-            await $fetch('/api/skills', { method: 'POST', body: { name, category } })
-            await refresh()
-        } finally {
-            isSaving.value = false
-        }
-    }
-}
-
-async function deleteSkill(id) {
-    isSaving.value = true
-    try {
-        await $fetch(`/api/skills?id=${id}`, { method: 'DELETE' })
-        await refresh()
-    } finally {
-        isSaving.value = false
-    }
-}
-
-async function saveEducation(item) {
-    isSaving.value = true
-    try {
-        if (item.id) {
-            await $fetch('/api/education', { method: 'PATCH', body: item })
-        } else {
-            await $fetch('/api/education', { method: 'POST', body: item })
-        }
-        await refresh()
-    } finally {
-        isSaving.value = false
-    }
-}
-
-async function deleteEducation(id) {
-    if (confirm('Delete this education entry?')) {
-        isSaving.value = true
-        try {
-            await $fetch(`/api/education?id=${id}`, { method: 'DELETE' })
-            await refresh()
-        } finally {
-            isSaving.value = false
-        }
-    }
-}
-
-async function saveOrg(item) {
-    isSaving.value = true
-    try {
-        if (item.id) {
-            await $fetch('/api/organizations', { method: 'PATCH', body: item })
-        } else {
-            await $fetch('/api/organizations', { method: 'POST', body: item })
-        }
-        await refresh()
-    } finally {
-        isSaving.value = false
-    }
-}
-
-async function deleteOrg(id) {
-    if (confirm('Delete this organization entry?')) {
-        isSaving.value = true
-        try {
-            await $fetch(`/api/organizations?id=${id}`, { method: 'DELETE' })
-            await refresh()
-        } finally {
-            isSaving.value = false
-        }
-    }
-}
-
-async function saveCert(item) {
-    isSaving.value = true
-    try {
-        if (item.id) {
-            await $fetch('/api/certifications', { method: 'PATCH', body: item })
-        } else {
-            await $fetch('/api/certifications', { method: 'POST', body: item })
-        }
-        await refresh()
-    } finally {
-        isSaving.value = false
-    }
-}
-
-async function deleteCert(id) {
-    if (confirm('Delete this certification?')) {
-        isSaving.value = true
-        try {
-            await $fetch(`/api/certifications?id=${id}`, { method: 'DELETE' })
-            await refresh()
-        } finally {
-            isSaving.value = false
-        }
-    }
-}
-
-async function saveProject(item) {
-    isSaving.value = true
-    try {
-        if (item.id) {
-            await $fetch('/api/projects', { method: 'PATCH', body: item })
-        } else {
-            await $fetch('/api/projects', { method: 'POST', body: item })
-        }
-        await refresh()
-    } finally {
-        isSaving.value = false
-    }
-}
-
-async function deleteProject(id) {
-    if (confirm('Delete this project?')) {
-        isSaving.value = true
-        try {
-            await $fetch(`/api/projects?id=${id}`, { method: 'DELETE' })
-            await refresh()
-        } finally {
-            isSaving.value = false
-        }
-    }
-}
-
-async function onProjectPhotoSelected(e, project) {
+async function onProjectPhotoSelected(e) {
   const file = e.target.files[0]
   if (!file) return
-  
-  if (file.size > 2 * 1024 * 1024) {
-    alert('File terlalu besar! Maksimal 2MB.')
-    return
-  }
-
   const reader = new FileReader()
-  reader.onload = async (event) => {
-    project.imageUrl = event.target.result
+  reader.onload = (event) => {
+    modalData.value.imageUrl = event.target.result
   }
   reader.readAsDataURL(file)
 }
 
-const { clear: clearSession } = useUserSession()
+// --- Chat System ---
+const chatSessions = ref([])
+const selectedChat = ref(null)
+const chatMessages = ref([])
+const adminReply = ref('')
+let pollTimer = null
 
-async function logout() {
-    await $fetch('/api/logout', { method: 'POST' })
-    await clearSession()
-    window.location.href = '/login'
+async function loadChats() {
+  chatSessions.value = await $fetch('/api/chat/sessions')
 }
+
+async function selectChat(session) {
+  selectedChat.value = session
+  const res = await $fetch(`/api/chat/messages?sessionId=${session.id}`)
+  chatMessages.value = res.messages || []
+}
+
+async function sendReply() {
+  if (!adminReply.value.trim() || !selectedChat.value) return
+  await $fetch('/api/chat/messages', {
+    method: 'POST',
+    body: { sessionId: selectedChat.value.id, content: adminReply.value, senderType: 'admin' }
+  })
+  adminReply.value = ''
+  await selectChat(selectedChat.value)
+}
+
+function formatChatTime(ts) {
+  if (!ts) return ''
+  return new Date(ts * 1000).toLocaleString('id-ID', { 
+    day: '2-digit', 
+    month: 'short', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
+}
+
+watch(activeTab, (t) => {
+  if (t === 'chat') {
+    loadChats()
+    if (!pollTimer) pollTimer = setInterval(loadChats, 5000)
+  } else {
+    if (pollTimer) {
+      clearInterval(pollTimer)
+      pollTimer = null
+    }
+  }
+}, { immediate: true })
+
+const { clear: clearSession } = useUserSession()
+async function logout() {
+  await $fetch('/api/logout', { method: 'POST' })
+  await clearSession()
+  window.location.href = '/login'
+}
+
+const menuItems = [
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'projects', label: 'Projects', icon: Code2 },
+  { id: 'experiences', label: 'Experiences', icon: Briefcase },
+  { id: 'skills', label: 'Skills', icon: Award },
+  { id: 'education', label: 'Education', icon: GraduationCap },
+  { id: 'organizations', label: 'Organizations', icon: Users },
+  { id: 'certifications', label: 'Certifications', icon: Award },
+  { id: 'chat', label: 'Live Chat', icon: MessageSquare },
+]
 </script>
 
 <template>
-  <div class="min-h-screen bg-black text-white">
-    <!-- Full-page loading overlay -->
-    <div v-if="isSaving" class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center backdrop-blur-sm">
-        <div class="text-4xl font-black animate-bounce tracking-widest text-accent">MENYIMPAN...</div>
+  <div class="min-h-screen bg-[#080808] text-white font-sans selection:bg-accent selection:text-black">
+    <!-- Overlay Loading -->
+    <div v-if="isSaving" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center">
+      <div class="bg-white text-black p-8 border-8 border-black shadow-[12px_12px_0px_0px_var(--accent)] animate-bounce">
+        <p class="font-black text-2xl tracking-widest uppercase">Memproses...</p>
+      </div>
     </div>
 
-    <nav class="p-6 border-b-4 border-white flex justify-between items-center bg-neutral-950 sticky top-0 z-50">
-        <h1 class="text-2xl font-black">MNA CMS</h1>
-        <div class="flex gap-4">
-            <button @click="logout" class="badge bg-red-600 border-red-600 text-white cursor-pointer">LOGOUT</button>
-            <a href="/" target="_blank" class="badge bg-white text-black">VIEW PORTFOLIO</a>
-        </div>
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-black border-b-8 border-white p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-4">
+        <div class="bg-accent text-black font-black px-3 py-1 rotate-[-2deg] border-4 border-black text-lg">MNA</div>
+        <h1 class="text-2xl font-black tracking-tighter uppercase">Portfolio <span class="text-soft-purple">CMS</span></h1>
+      </div>
+      <div class="flex gap-4 w-full md:w-auto">
+        <a href="/" target="_blank" class="brutalist-btn !py-2 !px-4 bg-white text-black text-xs flex-1 md:flex-none text-center">WEBSITE</a>
+        <button @click="logout" class="brutalist-btn !py-2 !px-4 bg-red-600 text-white border-black text-xs flex-1 md:flex-none">KELUAR</button>
+      </div>
     </nav>
 
-    <div class="p-8">
-        <div class="flex flex-wrap gap-4 mb-12">
-            <button v-for="tab in ['profile', 'projects', 'experiences', 'skills', 'education', 'organizations', 'certifications', 'chat']" 
-                :key="tab"
-                @click="activeTab = tab"
-                class="brutalist-btn text-xs"
-                :class="activeTab === tab ? 'bg-accent' : 'bg-white opacity-50'"
-            >
-                <div v-if="tab === 'chat'" class="flex items-center gap-1.5">
-                  <MessageSquare :size="14" />
-                  Chat
-                </div>
-                <template v-else>{{ tab }}</template>
-                <span v-if="tab === 'chat' && chatSessions.filter(s => s.totalMessages > 0).length > 0" class="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">
-                  {{ chatSessions.filter(s => s.totalMessages > 0).length }}
-                </span>
-            </button>
+    <div class="flex flex-col lg:flex-row min-h-[calc(100vh-100px)]">
+      <!-- Sidebar Menu -->
+      <aside class="w-full lg:w-72 border-b-8 lg:border-b-0 lg:border-r-8 border-white p-6 bg-neutral-950 space-y-4">
+        <p class="text-[10px] font-black uppercase opacity-40 tracking-widest mb-6">Manajemen Menu</p>
+        <button v-for="item in menuItems" :key="item.id"
+          @click="activeTab = item.id"
+          class="w-full flex items-center gap-4 p-4 border-4 transition-all duration-200 group relative overflow-hidden"
+          :class="activeTab === item.id ? 'bg-accent text-black border-black translate-x-2' : 'bg-transparent border-white/10 text-white/60 hover:border-white/40 hover:text-white'"
+        >
+          <component :is="item.icon" :size="20" :stroke-width="3" />
+          <span class="font-black uppercase text-sm tracking-tight">{{ item.label }}</span>
+          
+          <!-- Unread Badge for Chat Sidebar -->
+          <div v-if="item.id === 'chat' && chatSessions.reduce((acc, s) => acc + (s.unreadCount || 0), 0) > 0" 
+            class="ml-auto bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black"
+          >
+            {{ chatSessions.reduce((acc, s) => acc + (s.unreadCount || 0), 0) }}
+          </div>
+          
+          <div v-if="activeTab === item.id" class="absolute right-0 top-0 bottom-0 w-2 bg-black"></div>
+        </button>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="flex-1 p-6 md:p-12 overflow-x-hidden">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+          <div>
+            <p class="text-xs font-black text-accent uppercase tracking-[0.2em] mb-2">Workspace</p>
+            <h2 class="text-5xl md:text-7xl font-black tracking-tighter uppercase">{{ activeTab }}</h2>
+          </div>
+          <button v-if="activeTab !== 'profile' && activeTab !== 'chat'" 
+            @click="openModal(activeTab)"
+            class="brutalist-btn bg-soft-blue text-black font-black flex items-center gap-2"
+          >
+            <Plus :size="20" /> TAMBAH BARU
+          </button>
         </div>
 
-        <div v-if="portfolio" class="max-w-6xl">
-            <!-- Project Manager -->
-            <section v-if="activeTab === 'projects'" class="space-y-8">
-                <button @click="saveProject({ title: 'New Project', description: '', techs: '', order: 0, stats: '[]', features: '[]' })" class="brutalist-btn bg-soft-blue text-black font-black">+ ADD PROJECT</button>
-                <div v-for="project in portfolio.projects" :key="project.id" class="brutalist-card bg-neutral-900 border-white/20">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-4">
-                            <label class="block text-xs uppercase font-black text-white/40">Project Title</label>
-                            <input v-model="project.title" class="cms-input" placeholder="Project Title" />
-                            
-                            <label class="block text-xs uppercase font-black text-white/40">Tech Stack (comma separated)</label>
-                            <input v-model="project.techs" class="cms-input" placeholder="e.g. PHP, Laravel, Tailwind" />
-                            
-                            <label class="block text-xs uppercase font-black text-white/40">Demo URL</label>
-                            <input v-model="project.demoUrl" class="cms-input" placeholder="https://..." />
-                            
-                            <label class="block text-xs uppercase font-black text-white/40">GitHub URL</label>
-                            <input v-model="project.githubUrl" class="cms-input" placeholder="https://github.com/..." />
-                        </div>
-                        <div class="space-y-4">
-                            <label class="block text-xs uppercase font-black text-white/40">Project Screenshot</label>
-                            <div class="flex items-center gap-4">
-                                <div v-if="project.imageUrl" class="w-24 h-16 border-2 border-white overflow-hidden bg-black">
-                                    <img :src="project.imageUrl" class="w-full h-full object-cover" />
-                                </div>
-                                <input type="file" @change="(e) => onProjectPhotoSelected(e, project)" accept="image/*" class="text-xs file:brutalist-btn file:bg-white file:text-black file:mr-4" />
-                            </div>
-
-                            <label class="block text-xs uppercase font-black text-white/40">Admin Credentials</label>
-                            <input v-model="project.credentials" class="cms-input" placeholder="Email: ... | Password: ..." />
-
-                            <label class="block text-xs uppercase font-black text-white/40">Stats (JSON format)</label>
-                            <textarea v-model="project.stats" class="cms-input h-20 font-mono text-xs" placeholder='[{"label": "DB", "value": "6", "icon": "database"}]'></textarea>
-                        </div>
-
-                        <div class="md:col-span-2 space-y-4">
-                            <label class="block text-xs uppercase font-black text-white/40">Description</label>
-                            <textarea v-model="project.description" class="cms-input h-24" placeholder="Description"></textarea>
-                            
-                            <label class="block text-xs uppercase font-black text-white/40">Features (JSON Array)</label>
-                            <textarea v-model="project.features" class="cms-input h-24 font-mono text-xs" placeholder='["Feature 1", "Feature 2"]'></textarea>
-                        </div>
-                    </div>
-                    <div class="flex gap-4 mt-8">
-                        <button @click="saveProject(project)" class="brutalist-btn bg-accent text-black flex-1">UPDATE PROJECT</button>
-                        <button @click="deleteProject(project.id)" class="brutalist-btn bg-red-600 text-white">DELETE</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Profile Editor -->
-            <section v-if="activeTab === 'profile'" class="brutalist-card">
-                <h2 class="text-3xl mb-8 uppercase">Edit Profile</h2>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div class="space-y-4">
-                        <label class="block uppercase font-black">Name</label>
-                        <input v-model="portfolio.profile.name" class="cms-input" />
-                        
-                        <label class="block uppercase font-black">Role</label>
-                        <input v-model="portfolio.profile.role" class="cms-input" />
-
-                        <label class="block uppercase font-black">Profile Photo</label>
-                        <div class="flex items-center gap-4">
-                            <div v-if="portfolio.profile.photoUrl" class="w-16 h-16 border-2 border-white overflow-hidden">
-                                <img :src="portfolio.profile.photoUrl" class="w-full h-full object-cover" />
-                            </div>
-                            <input type="file" @change="onPhotoSelected" accept="image/*" class="text-xs file:brutalist-btn file:bg-white file:text-black file:mr-4" />
-                        </div>
-
-                        <label class="block uppercase font-black">Email</label>
-                        <input v-model="portfolio.profile.email" class="cms-input" />
-                    </div>
-                    <div class="space-y-4">
-                        <label class="block uppercase font-black">Description</label>
-                        <textarea v-model="portfolio.profile.description" class="cms-input h-32"></textarea>
-
-                        <label class="block uppercase font-black">Bio</label>
-                        <textarea v-model="portfolio.profile.bio" class="cms-input h-32"></textarea>
-                    </div>
-                </div>
-                <button @click="updateProfile" class="brutalist-btn bg-accent text-black w-full mt-8">SAVE PROFILE CHANGES</button>
-            </section>
-
-            <!-- Experience Manager -->
-            <section v-if="activeTab === 'experiences'" class="space-y-8">
-                <button @click="saveExperience({ company: 'New Company', role: 'Role', period: '2024', description: '' })" class="brutalist-btn bg-accent-yellow text-black font-black">+ ADD EXPERIENCE</button>
-                <div v-for="exp in portfolio.experiences" :key="exp.id" class="brutalist-card bg-neutral-900">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <input v-model="exp.company" class="cms-input" placeholder="Company" />
-                        <input v-model="exp.role" class="cms-input" placeholder="Role" />
-                        <input v-model="exp.period" class="cms-input" placeholder="Period" />
-                        <textarea v-model="exp.description" class="cms-input md:col-span-3 h-32" placeholder="Description"></textarea>
-                    </div>
-                    <div class="flex gap-4 mt-6">
-                        <button @click="saveExperience(exp)" class="brutalist-btn bg-accent text-black flex-1">UPDATE</button>
-                        <button @click="deleteExperience(exp.id)" class="brutalist-btn bg-red-600 text-white">DELETE</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Skills Manager -->
-            <section v-if="activeTab === 'skills'" class="grid md:grid-cols-2 gap-12">
-                <div class="brutalist-card">
-                    <h3 class="text-2xl mb-6 bg-accent text-black px-2 inline-block">HARD SKILLS</h3>
-                    <div class="flex flex-wrap gap-2 mb-6">
-                        <div v-for="skill in portfolio.skills.filter(s => s.category === 'hard')" :key="skill.id" class="group relative">
-                            <span class="badge bg-neutral-800">{{ skill.name }}</span>
-                            <button @click="deleteSkill(skill.id)" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-                        </div>
-                    </div>
-                    <button @click="addSkill('hard')" class="text-xs underline hover:text-accent font-black">+ ADD HARD SKILL</button>
-                </div>
-                <div class="brutalist-card">
-                    <h3 class="text-2xl mb-6 bg-accent-yellow text-black px-2 inline-block">SOFTWARE</h3>
-                    <div class="flex flex-wrap gap-2 mb-6">
-                        <div v-for="skill in portfolio.skills.filter(s => s.category === 'software')" :key="skill.id" class="group relative">
-                            <span class="badge bg-neutral-800">{{ skill.name }}</span>
-                            <button @click="deleteSkill(skill.id)" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-                        </div>
-                    </div>
-                    <button @click="addSkill('software')" class="text-xs underline hover:text-accent-yellow font-black">+ ADD SOFTWARE</button>
-                </div>
-            </section>
-
-            <!-- Education Manager -->
-            <section v-if="activeTab === 'education'" class="space-y-8">
-                <button @click="saveEducation({ institution: 'New Institution', degree: 'Degree', period: '2024' })" class="brutalist-btn bg-accent text-black font-black">+ ADD EDUCATION</button>
-                <div v-for="edu in portfolio.education" :key="edu.id" class="brutalist-card bg-neutral-900">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <input v-model="edu.institution" class="cms-input" placeholder="Institution" />
-                        <input v-model="edu.degree" class="cms-input" placeholder="Degree" />
-                        <input v-model="edu.period" class="cms-input" placeholder="Period" />
-                        <input v-model="edu.gpa" class="cms-input md:col-span-3" placeholder="GPA (optional)" />
-                    </div>
-                    <div class="flex gap-4 mt-6">
-                        <button @click="saveEducation(edu)" class="brutalist-btn bg-accent text-black flex-1">UPDATE</button>
-                        <button @click="deleteEducation(edu.id)" class="brutalist-btn bg-red-600 text-white">DELETE</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Organizations Manager -->
-            <section v-if="activeTab === 'organizations'" class="space-y-8">
-                <button @click="saveOrg({ org: 'New Org', role: 'Role', period: '2024' })" class="brutalist-btn bg-accent-yellow text-black font-black">+ ADD ORGANIZATION</button>
-                <div v-for="org in portfolio.organizations" :key="org.id" class="brutalist-card bg-neutral-900">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <input v-model="org.org" class="cms-input" placeholder="Organization" />
-                        <input v-model="org.role" class="cms-input" placeholder="Role" />
-                        <input v-model="org.period" class="cms-input" placeholder="Period" />
-                    </div>
-                    <div class="flex gap-4 mt-6">
-                        <button @click="saveOrg(org)" class="brutalist-btn bg-accent text-black flex-1">UPDATE</button>
-                        <button @click="deleteOrg(org.id)" class="brutalist-btn bg-red-600 text-white">DELETE</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Certifications Manager -->
-            <section v-if="activeTab === 'certifications'" class="space-y-8">
-                <button @click="saveCert({ title: 'New Cert', issuer: 'Issuer', date: '2024' })" class="brutalist-btn bg-white text-black font-black">+ ADD CERTIFICATION</button>
-                <div v-for="cert in portfolio.certifications" :key="cert.id" class="brutalist-card bg-neutral-900 font-mono">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <input v-model="cert.title" class="cms-input" placeholder="Title" />
-                        <input v-model="cert.issuer" class="cms-input" placeholder="Issuer" />
-                        <input v-model="cert.date" class="cms-input" placeholder="Date" />
-                    </div>
-                    <div class="flex gap-4 mt-6">
-                        <button @click="saveCert(cert)" class="brutalist-btn bg-accent text-black flex-1 font-sans">UPDATE</button>
-                        <button @click="deleteCert(cert.id)" class="brutalist-btn bg-red-600 text-white font-sans">DELETE</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Chat Manager -->
-            <section v-if="activeTab === 'chat'" class="space-y-6">
-              <div class="grid lg:grid-cols-3 gap-6 h-[70vh]">
-
-                <!-- Session List -->
-                <div class="lg:col-span-1 border-4 border-white rounded-2xl overflow-hidden flex flex-col">
-                  <div class="px-4 py-3 bg-white/10 border-b-2 border-white/20 flex items-center justify-between">
-                    <div class="flex items-center gap-1.5 font-black uppercase text-sm">
-                      <MessageSquare :size="16" />
-                      Percakapan
-                    </div>
-                    <span class="text-xs text-white/40">{{ chatSessions.length }} sesi</span>
+        <div v-if="portfolio">
+          <!-- PROFILE VIEW (Special Layout) -->
+          <div v-if="activeTab === 'profile'" class="space-y-12">
+            <div class="brutalist-card bg-neutral-900/50 border-white/20 p-8 md:p-12">
+              <div class="grid lg:grid-cols-2 gap-16">
+                <div class="space-y-8">
+                  <div class="space-y-3">
+                    <label class="cms-label text-soft-purple">Nama Lengkap</label>
+                    <input v-model="portfolio.profile.name" class="cms-input text-2xl" />
                   </div>
-                  <div class="flex-1 overflow-y-auto">
-                    <div v-if="chatSessions.length === 0" class="p-6 text-center text-white/40 text-sm font-bold">
-                      Belum ada percakapan.
+                  <div class="space-y-3">
+                    <label class="cms-label text-soft-yellow">Role / Jabatan</label>
+                    <input v-model="portfolio.profile.role" class="cms-input" />
+                  </div>
+                  <div class="space-y-3">
+                    <label class="cms-label text-soft-green">Foto Profil</label>
+                    <div class="flex items-center gap-6 p-4 border-4 border-white/10 rounded-2xl bg-black/40">
+                      <div class="w-24 h-24 border-4 border-white rotate-[-3deg] shadow-[6px_6px_0px_0px_white] overflow-hidden bg-neutral-800">
+                        <img v-if="portfolio.profile.photoUrl" :src="portfolio.profile.photoUrl" class="w-full h-full object-cover" />
+                      </div>
+                      <input type="file" @change="onPhotoSelected" class="text-xs file:brutalist-btn file:!py-1 file:!px-4" />
                     </div>
-                    <button
-                      v-for="session in chatSessions"
-                      :key="session.id"
-                      @click="selectChatSession(session)"
-                      class="w-full text-left px-4 py-3 border-b border-white/10 hover:bg-white/5 transition-colors"
-                      :class="selectedChatSession?.id === session.id ? 'bg-soft-purple/20 border-l-4 border-l-soft-purple' : ''"
-                    >
-                      <div class="flex items-center justify-between">
-                        <p class="font-black text-sm text-white">{{ session.visitorName }}</p>
-                        <span class="text-[10px] text-white/30">{{ formatChatTime(session.createdAt) }}</span>
-                      </div>
-                      <p v-if="session.lastMessage" class="text-xs text-white/50 mt-1 truncate">{{ session.lastMessage.content }}</p>
-                      <div class="flex items-center gap-2 mt-1">
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="session.lastMessage?.senderType === 'visitor' ? 'bg-soft-yellow/20 text-soft-yellow' : 'bg-soft-green/20 text-soft-green'">
-                          {{ session.totalMessages }} pesan
-                        </span>
-                      </div>
-                    </button>
                   </div>
                 </div>
-
-                <!-- Message View -->
-                <div class="lg:col-span-2 border-4 border-white rounded-2xl overflow-hidden flex flex-col">
-                  <div v-if="!selectedChatSession" class="flex-1 flex items-center justify-center">
-                    <p class="text-white/30 font-bold text-center">Pilih sesi chat untuk melihat<br>dan membalas pesan.</p>
+                <div class="space-y-8">
+                  <div class="space-y-3">
+                    <label class="cms-label text-soft-blue">Email</label>
+                    <input v-model="portfolio.profile.email" class="cms-input" />
                   </div>
-                  <template v-else>
-                    <!-- Chat Header -->
-                    <div class="px-5 py-3 bg-white/10 border-b-2 border-white/20 flex items-center justify-between">
-                      <div>
-                        <p class="font-black text-sm">{{ selectedChatSession.visitorName }}</p>
-                        <p class="text-xs text-white/40">Mulai: {{ formatChatTime(selectedChatSession.createdAt) }}</p>
-                      </div>
-                      <button @click="deleteChatSession(selectedChatSession.id)" class="text-xs font-black text-red-400 hover:underline uppercase">Hapus Sesi</button>
-                    </div>
-
-                    <!-- Messages -->
-                    <div class="flex-1 overflow-y-auto p-5 space-y-3">
-                      <div v-for="msg in chatMessages" :key="msg.id" class="flex" :class="msg.senderType === 'admin' ? 'justify-end' : 'justify-start'">
-                        <div class="max-w-[75%] space-y-1">
-                          <div
-                            :class="[
-                              'px-4 py-2.5 rounded-2xl text-sm font-medium leading-relaxed border-2 border-black',
-                              msg.senderType === 'admin'
-                                ? 'bg-soft-purple text-white rounded-tr-sm'
-                                : 'bg-white text-black rounded-tl-sm'
-                            ]"
-                          >{{ msg.content }}</div>
-                          <p class="text-[10px] text-white/40 flex items-center gap-1" :class="msg.senderType === 'admin' ? 'justify-end' : 'justify-start'">
-                            <Settings2 v-if="msg.senderType === 'admin'" :size="10" />
-                            {{ msg.senderType === 'admin' ? 'Admin' : selectedChatSession.visitorName }} · {{ formatChatTime(msg.createdAt) }}
-                          </p>
-                        </div>
-                      </div>
-                      <div id="admin-chat-end"></div>
-                    </div>
-
-                    <!-- Reply Input -->
-                    <div class="border-t-2 border-white/20 p-4 flex gap-3">
-                      <input
-                        v-model="adminReply"
-                        @keydown.enter.prevent="sendAdminReply"
-                        type="text"
-                        placeholder="Ketik balasan..."
-                        class="flex-1 bg-black border-[3px] border-white/30 focus:border-accent rounded-xl px-4 py-3 text-white font-medium text-sm outline-none transition-colors"
-                      />
-                      <button
-                        @click="sendAdminReply"
-                        :disabled="!adminReply.trim() || isSendingReply"
-                        class="brutalist-btn bg-accent text-black text-xs font-black px-6 disabled:opacity-40"
-                      >
-                        {{ isSendingReply ? '...' : 'Kirim' }}
-                      </button>
-                    </div>
-                  </template>
+                  <div class="space-y-3">
+                    <label class="cms-label">Deskripsi Panjang</label>
+                    <textarea v-model="portfolio.profile.description" class="cms-input h-48"></textarea>
+                  </div>
                 </div>
               </div>
-            </section>
+              <button @click="saveProfile" class="brutalist-btn bg-accent text-black w-full mt-12 text-xl shadow-[8px_8px_0px_0px_white]">SIMPAN PERUBAHAN PROFIL</button>
+            </div>
+          </div>
+
+          <!-- TABLE VIEW (For Projects, Exp, Edu, etc.) -->
+          <div v-else-if="activeTab !== 'chat'" class="brutalist-card !p-0 overflow-hidden border-white/20">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-white/5 border-b-4 border-white/10">
+                    <th class="p-6 text-xs font-black uppercase tracking-widest opacity-40">Info Utama</th>
+                    <th class="p-6 text-xs font-black uppercase tracking-widest opacity-40">Sub-Info / Detail</th>
+                    <th class="p-6 text-xs font-black uppercase tracking-widest opacity-40">Waktu / Status</th>
+                    <th class="p-6 text-xs font-black uppercase tracking-widest opacity-40 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y-2 divide-white/5">
+                  <tr v-for="item in portfolio[activeTab]" :key="item.id" class="hover:bg-white/5 transition-colors group">
+                    <!-- Column 1: Main Title -->
+                    <td class="p-6">
+                      <div class="flex items-center gap-4">
+                        <div v-if="activeTab === 'projects' && item.imageUrl" class="w-12 h-12 border-2 border-white rounded-lg overflow-hidden shrink-0">
+                          <img :src="item.imageUrl" class="w-full h-full object-cover" />
+                        </div>
+                        <p class="font-black text-lg tracking-tight uppercase group-hover:text-accent transition-colors">
+                          {{ item.title || item.company || item.institution || item.org || item.name }}
+                        </p>
+                      </div>
+                    </td>
+                    <!-- Column 2: Details -->
+                    <td class="p-6">
+                      <p class="text-sm font-bold opacity-60">
+                        {{ item.role || item.degree || item.issuer || item.category || 'N/A' }}
+                      </p>
+                      <p v-if="item.techs" class="text-[10px] mt-1 text-soft-purple font-black">{{ item.techs }}</p>
+                    </td>
+                    <!-- Column 3: Date/Period -->
+                    <td class="p-6">
+                      <span class="badge !bg-neutral-800 !text-[10px]">{{ item.period || item.date || 'Active' }}</span>
+                    </td>
+                    <!-- Column 4: Actions -->
+                    <td class="p-6 text-right space-x-2">
+                      <button @click="openModal(activeTab, item)" class="p-2 bg-white text-black border-2 border-black hover:bg-accent transition-colors">
+                        <Pencil :size="16" />
+                      </button>
+                      <button @click="deleteItem(activeTab, item.id)" class="p-2 bg-red-600 text-white border-2 border-black hover:bg-red-700 transition-colors">
+                        <Trash2 :size="16" />
+                      </button>
+                    </td>
+                  </tr>
+                  <tr v-if="!portfolio[activeTab]?.length">
+                    <td colspan="4" class="p-12 text-center italic opacity-30 font-black tracking-widest uppercase">Data Kosong</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CHAT SYSTEM (Wide Layout) -->
+          <div v-else class="grid lg:grid-cols-3 gap-8 h-[70vh]">
+            <div class="lg:col-span-1 brutalist-card !p-0 flex flex-col overflow-hidden">
+              <div class="p-4 bg-white/5 border-b-2 border-white/10 font-black uppercase text-xs">Pesan Masuk</div>
+              <div class="flex-1 overflow-y-auto">
+                <button v-for="s in chatSessions" :key="s.id" 
+                  @click="selectChat(s)"
+                  class="w-full p-4 border-b border-white/5 text-left hover:bg-white/5"
+                  :class="selectedChat?.id === s.id ? 'bg-soft-purple/20 border-l-4 border-soft-purple' : ''"
+                >
+                  <p class="font-black">{{ s.visitorName }}</p>
+                  <div class="flex items-center justify-between mt-1">
+                    <p class="text-[10px] opacity-40">{{ formatChatTime(s.createdAt) }}</p>
+                    <span v-if="s.unreadCount > 0" class="bg-accent text-black text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black">
+                      {{ s.unreadCount }} BARU
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+            <div class="lg:col-span-2 brutalist-card !p-0 flex flex-col overflow-hidden">
+              <template v-if="selectedChat">
+                <div class="p-4 border-b-2 border-white/10 flex justify-between items-center">
+                  <p class="font-black uppercase">{{ selectedChat.visitorName }}</p>
+                  <span class="text-[10px] opacity-40 italic">ID: {{ selectedChat.id.slice(0,8) }}</span>
+                </div>
+                <div class="flex-1 p-6 space-y-4 overflow-y-auto bg-black/40">
+                  <div v-for="m in chatMessages" :key="m.id" 
+                    class="flex" :class="m.senderType === 'admin' ? 'justify-end' : 'justify-start'">
+                    <div class="max-w-[80%] p-3 rounded-xl border-2 border-black"
+                      :class="m.senderType === 'admin' ? 'bg-soft-purple text-black' : 'bg-white text-black'">
+                      {{ m.content }}
+                    </div>
+                  </div>
+                </div>
+                <div class="p-4 border-t-2 border-white/10 flex gap-4">
+                  <input v-model="adminReply" @keydown.enter="sendReply" class="cms-input !py-2" placeholder="Balas pesan..." />
+                  <button @click="sendReply" class="brutalist-btn bg-accent text-black !py-2">KIRIM</button>
+                </div>
+              </template>
+              <div v-else class="flex-1 flex items-center justify-center italic opacity-20">Pilih chat untuk membalas</div>
+            </div>
+          </div>
         </div>
+      </main>
+    </div>
+
+    <!-- CENTRAL MODAL (Pop-up) -->
+    <div v-if="isModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-md" @click="closeModal"></div>
+      <div class="brutalist-card bg-neutral-950 border-white p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative z-10 shadow-[20px_20px_0px_0px_var(--accent)]">
+        <div class="flex justify-between items-center mb-10 border-b-4 border-white/10 pb-6">
+          <h3 class="text-3xl font-black uppercase tracking-tighter">
+            {{ isNewItem ? 'Tambah' : 'Edit' }} {{ modalType.slice(0, -1) }}
+          </h3>
+          <button @click="closeModal" class="p-2 hover:bg-red-600 transition-colors border-2 border-white">
+            <X :size="24" />
+          </button>
+        </div>
+
+        <!-- Dynamic Form Content -->
+        <div class="grid md:grid-cols-2 gap-8">
+          <!-- PROJECTS FORM -->
+          <template v-if="modalType === 'projects'">
+            <div class="space-y-4">
+              <label class="cms-label">Judul Proyek</label>
+              <input v-model="modalData.title" class="cms-input" />
+              <label class="cms-label">Tech Stack</label>
+              <input v-model="modalData.techs" class="cms-input" />
+              <label class="cms-label">Demo URL</label>
+              <input v-model="modalData.demoUrl" class="cms-input" />
+              <label class="cms-label">GitHub URL</label>
+              <input v-model="modalData.githubUrl" class="cms-input" />
+            </div>
+            <div class="space-y-4">
+              <label class="cms-label text-soft-green">Thumbnail Proyek</label>
+              <div class="border-4 border-white/10 p-4 rounded-xl bg-black flex flex-col gap-4">
+                <img v-if="modalData.imageUrl" :src="modalData.imageUrl" class="w-full aspect-video object-cover border-2 border-white" />
+                <input type="file" @change="onProjectPhotoSelected" class="text-[10px] file:brutalist-btn file:!py-1" />
+              </div>
+              <label class="cms-label">Deskripsi</label>
+              <textarea v-model="modalData.description" class="cms-input h-32"></textarea>
+            </div>
+            <div class="md:col-span-2 space-y-4 border-t-2 border-white/10 pt-4">
+               <label class="cms-label italic opacity-40">Features (JSON Array)</label>
+               <textarea v-model="modalData.features" class="cms-input h-20 font-mono text-xs"></textarea>
+            </div>
+          </template>
+
+          <!-- EXPERIENCES FORM -->
+          <template v-else-if="modalType === 'experiences'">
+            <div class="space-y-4">
+              <label class="cms-label">Perusahaan</label>
+              <input v-model="modalData.company" class="cms-input" />
+              <label class="cms-label">Jabatan</label>
+              <input v-model="modalData.role" class="cms-input" />
+            </div>
+            <div class="space-y-4">
+              <label class="cms-label">Periode</label>
+              <input v-model="modalData.period" class="cms-input" />
+              <label class="cms-label">Urutan (Order)</label>
+              <input type="number" v-model="modalData.order" class="cms-input" />
+            </div>
+            <div class="md:col-span-2 space-y-4">
+              <label class="cms-label">Deskripsi Pekerjaan</label>
+              <textarea v-model="modalData.description" class="cms-input h-32"></textarea>
+            </div>
+          </template>
+
+          <!-- EDUCATION FORM -->
+          <template v-else-if="modalType === 'education'">
+             <div class="space-y-4">
+              <label class="cms-label">Institusi</label>
+              <input v-model="modalData.institution" class="cms-input" />
+              <label class="cms-label">Gelar / Jurusan</label>
+              <input v-model="modalData.degree" class="cms-input" />
+            </div>
+            <div class="space-y-4">
+              <label class="cms-label">Periode</label>
+              <input v-model="modalData.period" class="cms-input" />
+              <label class="cms-label">GPA (IPK)</label>
+              <input v-model="modalData.gpa" class="cms-input" />
+            </div>
+          </template>
+
+          <!-- SKILLS FORM -->
+          <template v-else-if="modalType === 'skills'">
+             <div class="space-y-4">
+              <label class="cms-label">Nama Skill</label>
+              <input v-model="modalData.name" class="cms-input" />
+            </div>
+            <div class="space-y-4">
+              <label class="cms-label">Kategori</label>
+              <select v-model="modalData.category" class="cms-input bg-neutral-900">
+                <option value="hard">Hard Skill</option>
+                <option value="software">Software / Tool</option>
+              </select>
+            </div>
+          </template>
+
+          <!-- ORGANIZATIONS FORM -->
+          <template v-else-if="modalType === 'organizations'">
+            <div class="space-y-4">
+              <label class="cms-label">Nama Organisasi</label>
+              <input v-model="modalData.org" class="cms-input" />
+              <label class="cms-label">Jabatan</label>
+              <input v-model="modalData.role" class="cms-input" />
+            </div>
+            <div class="space-y-4">
+              <label class="cms-label">Periode</label>
+              <input v-model="modalData.period" class="cms-input" />
+            </div>
+          </template>
+
+          <!-- CERTIFICATIONS FORM -->
+          <template v-else-if="modalType === 'certifications'">
+            <div class="space-y-4">
+              <label class="cms-label">Judul Sertifikasi</label>
+              <input v-model="modalData.title" class="cms-input" />
+              <label class="cms-label">Penerbit</label>
+              <input v-model="modalData.issuer" class="cms-input" />
+            </div>
+            <div class="space-y-4">
+              <label class="cms-label">Tanggal</label>
+              <input v-model="modalData.date" class="cms-input" />
+            </div>
+          </template>
+        </div>
+
+        <div class="mt-12 flex gap-4">
+          <button @click="handleSave" class="brutalist-btn bg-accent text-black flex-1 text-xl font-black">SIMPAN DATA</button>
+          <button @click="closeModal" class="brutalist-btn bg-white text-black px-12 font-black">BATAL</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .cms-input {
-    @apply w-full bg-black border-4 border-white p-3 focus:border-accent outline-none font-bold text-white transition-colors;
+  @apply w-full bg-neutral-900 border-2 border-white/20 p-3 md:p-4 focus:border-accent focus:bg-black outline-none font-bold text-white transition-all rounded-xl;
+}
+.cms-label {
+  @apply block text-[10px] uppercase font-black tracking-widest opacity-40 mb-2;
+}
+.brutalist-card {
+  @apply bg-black border-4 border-white p-6 transition-all duration-300 rounded-3xl relative;
+}
+.brutalist-btn {
+  @apply bg-white text-black font-black px-6 py-3 border-4 border-black transition-all uppercase inline-flex items-center justify-center rounded-xl shadow-[4px_4px_0px_0px_black];
+}
+.brutalist-btn:hover {
+  @apply -translate-x-1 -translate-y-1 shadow-[8px_8px_0px_0px_black];
+}
+.brutalist-btn:active {
+  @apply translate-x-0 translate-y-0 shadow-none;
+}
+.badge {
+  @apply border-2 border-white px-3 py-1 text-[10px] font-black uppercase rounded-full bg-neutral-900;
 }
 </style>

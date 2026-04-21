@@ -32,27 +32,35 @@ export default defineEventHandler(async (event) => {
 
         // For each session, get last message and unread count
         const sessionsWithMeta = await Promise.all(sessions.map(async (session) => {
-            const lastMessages = await db
-                .select()
-                .from(chatMessages)
-                .where(eq(chatMessages.sessionId, session.id))
-                .orderBy(desc(chatMessages.createdAt))
-                .limit(1)
-
             const allMessages = await db
                 .select()
                 .from(chatMessages)
                 .where(eq(chatMessages.sessionId, session.id))
+                .orderBy(asc(chatMessages.createdAt))
 
-            const unreadCount = allMessages.filter(m => m.senderType === 'visitor').length
+            const lastMessage = allMessages[allMessages.length - 1] ?? null
+            
+            // Unread count: count visitor messages since the last admin reply
+            let unreadCount = 0
+            for (let i = allMessages.length - 1; i >= 0; i--) {
+                if (allMessages[i].senderType === 'admin') break
+                if (allMessages[i].senderType === 'visitor') unreadCount++
+            }
 
             return {
                 ...session,
-                lastMessage: lastMessages[0] ?? null,
+                lastMessage,
                 totalMessages: allMessages.length,
                 unreadCount,
             }
         }))
+
+        // Sort by last message time (or creation time if empty)
+        sessionsWithMeta.sort((a, b) => {
+            const timeA = a.lastMessage?.createdAt ?? a.createdAt
+            const timeB = b.lastMessage?.createdAt ?? b.createdAt
+            return timeB - timeA
+        })
 
         return sessionsWithMeta
     }
