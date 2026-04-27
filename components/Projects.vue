@@ -188,25 +188,17 @@ function parseVideoUrl(url) {
         <div @click="closeDetail" class="absolute inset-0 bg-black/90 backdrop-blur-md cursor-zoom-out"></div>
         
         <!-- Big Detail Container -->
-        <div class="brutalist-card bg-[#0a0a0a] border-white/20 w-full max-w-7xl h-full max-h-[90vh] overflow-y-auto relative z-10 custom-scrollbar">
-            <!-- Close Button -->
-            <button @click="closeDetail" class="absolute top-4 right-4 md:top-6 md:right-6 z-20 w-10 h-10 md:w-12 md:h-12 bg-white text-black border-[3px] md:border-4 border-black rounded-full font-black hover:bg-soft-purple hover:scale-110 transition-all flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <X :size="20" class="md:hidden" stroke-width="3" />
-                <X :size="24" class="hidden md:block" stroke-width="3" />
-            </button>
+        <template v-if="selectedProject.category !== 'video'">
+          <div class="brutalist-card bg-[#0a0a0a] border-white/20 w-full max-w-7xl h-full max-h-[90vh] overflow-y-auto relative z-10 custom-scrollbar mx-auto">
+              <!-- Close Button -->
+              <button @click="closeDetail" class="absolute top-4 right-4 md:top-6 md:right-6 z-20 w-10 h-10 md:w-12 md:h-12 bg-white text-black border-[3px] md:border-4 border-black rounded-full font-black hover:bg-soft-purple hover:scale-110 transition-all flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <X :size="20" class="md:hidden" stroke-width="3" />
+                  <X :size="24" class="hidden md:block" stroke-width="3" />
+              </button>
 
-            <div class="p-5 md:p-12">
-                <!-- Pure Video Popup (No Title/Content) for TikTok/IG/MP4 -->
-                <div v-if="selectedProject.category === 'video'" class="flex items-center justify-center w-full h-full pt-4">
-                   <div class="w-full bg-neutral-800 rounded-xl overflow-hidden border-2 border-black flex justify-center bg-black shadow-[8px_8px_0px_0px_var(--soft-purple)]" 
-                        :class="(selectedProject.videoUrl?.includes('tiktok') || selectedProject.videoUrl?.includes('instagram')) ? 'aspect-[9/16] max-h-[80vh] w-auto' : 'aspect-video w-full max-w-5xl'">
-                      <iframe v-if="parseVideoUrl(selectedProject.videoUrl).type === 'iframe'" :src="parseVideoUrl(selectedProject.videoUrl).src" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
-                      <video v-else :src="parseVideoUrl(selectedProject.videoUrl).src" controls autoplay class="w-full h-full object-contain"></video>
-                   </div>
-                </div>
-
-                <!-- Standard Project Details -->
-                <div v-else class="grid lg:grid-cols-2 gap-16 items-start">
+              <div class="p-5 md:p-12">
+                  <!-- Standard Project Details -->
+                  <div class="grid lg:grid-cols-2 gap-16 items-start">
                     <!-- Text Content -->
                     <div class="space-y-8">
                         <div class="inline-block px-4 py-1 bg-soft-purple border-2 border-black font-black text-xs rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4">
@@ -306,6 +298,24 @@ function parseVideoUrl(url) {
                         </div>
                     </div>
                 </div>
+            </div>
+          </div>
+        </template>
+        
+        <!-- Pure Video Popup (No Title/Content) for Video Category -->
+        <div v-else class="relative z-10 flex flex-col items-center justify-center w-full h-full p-4 pointer-events-none">
+            <div class="relative bg-neutral-800 rounded-2xl overflow-hidden border-4 border-black flex justify-center bg-black shadow-[15px_15px_0px_0px_var(--soft-purple)] pointer-events-auto mx-auto" 
+                 :class="(selectedProject.videoUrl?.includes('tiktok') || selectedProject.videoUrl?.includes('instagram')) 
+                    ? 'h-[80vh] md:h-[85vh] w-[calc(80vh*9/16)] md:w-[calc(85vh*9/16)] max-w-[95vw] aspect-[9/16]' 
+                    : 'aspect-video w-full max-w-6xl'">
+                
+                <!-- Close Button for Video -->
+                <button @click="closeDetail" class="absolute top-4 right-4 z-30 w-10 h-10 bg-white text-black border-4 border-black rounded-full font-black hover:bg-soft-purple hover:scale-110 transition-all flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <X :size="20" stroke-width="3" />
+                </button>
+
+                <iframe v-if="parseVideoUrl(selectedProject.videoUrl).type === 'iframe'" :src="parseVideoUrl(selectedProject.videoUrl).src" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+                <video v-else :src="parseVideoUrl(selectedProject.videoUrl).src" controls autoplay class="w-full h-full object-contain"></video>
             </div>
         </div>
       </div>
