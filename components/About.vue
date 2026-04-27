@@ -35,12 +35,12 @@ defineProps(['profile'])
       <div class="space-y-10">
         <div class="relative reveal-text">
             <h3 class="text-2xl md:text-3xl font-black text-soft-green mb-4 inline-block underline decoration-4 decoration-white">PROFIL SINGKAT</h3>
-            <div class="text-lg md:text-2xl leading-relaxed font-medium text-white/90 bg-neutral-900/50 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-white/10" v-html="profile.description"></div>
+            <div class="text-base md:text-xl leading-relaxed font-medium text-white/90 bg-neutral-900/50 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-white/10" v-html="profile.description"></div>
         </div>
 
         <div class="relative reveal-text">
             <div class="squiggle mb-6 opacity-30"></div>
-            <div class="text-lg md:text-xl leading-relaxed text-white/70 italic border-l-4 border-soft-pink pl-6" v-html="profile.bio"></div>
+            <div class="text-sm md:text-base leading-relaxed text-white/70 italic border-l-4 border-soft-pink pl-6" v-html="profile.bio"></div>
         </div>
       </div>
     </div>
