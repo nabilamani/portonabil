@@ -22,11 +22,13 @@ const props = defineProps({
 const selectedProject = ref(null)
 const showAll = ref(false)
 const itemsLimit = 3
+const activeCategory = ref('web')
 
 const displayedProjects = computed(() => {
   if (!props.projects) return []
-  if (showAll.value) return props.projects
-  return props.projects.slice(0, itemsLimit)
+  const filtered = props.projects.filter(p => (p.category || 'web') === activeCategory.value)
+  if (showAll.value) return filtered
+  return filtered.slice(0, itemsLimit)
 })
 
 function parseJSON(str, fallback = []) {
@@ -46,21 +48,84 @@ function closeDetail() {
     selectedProject.value = null
     document.body.style.overflow = 'auto'
 }
+
+function parseVideoUrl(url) {
+  if (!url) return { type: 'none', src: '' }
+  
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/)
+    if (ytMatch) return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}` }
+  }
+  
+  if (url.includes('tiktok.com')) {
+    const ttMatch = url.match(/video\/(\d+)/)
+    if (ttMatch) return { type: 'iframe', src: `https://www.tiktok.com/embed/v2/${ttMatch[1]}` }
+  }
+  
+  if (url.includes('instagram.com/p/') || url.includes('instagram.com/reel/')) {
+    let src = url.split('?')[0]
+    if (!src.endsWith('/')) src += '/'
+    return { type: 'iframe', src: `${src}embed/` }
+  }
+
+  return { type: 'video', src: url }
+}
 </script>
 
 <template>
   <section class="relative">
     <div class="absolute -top-24 -left-20 w-64 h-64 bg-soft-purple opacity-10 rounded-full blur-[100px] -z-10"></div>
     
-    <h2 class="section-title mb-16 md:mb-24 bg-soft-blue reveal-text">MY PROJECTS</h2>
+    <h2 class="section-title mb-12 bg-soft-blue reveal-text">MY PROJECTS</h2>
+
+    <!-- Category Tabs -->
+    <div class="flex gap-4 mb-16 overflow-x-auto pb-4 custom-scrollbar reveal-text">
+        <button @click="activeCategory = 'web'; showAll = false" 
+          :class="activeCategory === 'web' ? 'bg-accent text-black border-black' : 'bg-transparent border-white/20 text-white hover:border-white/50'" 
+          class="brutalist-btn flex-1 md:flex-none px-8 whitespace-nowrap"
+        >
+          WEB / APP
+        </button>
+        <button @click="activeCategory = 'video'; showAll = false" 
+          :class="activeCategory === 'video' ? 'bg-soft-purple text-black border-black' : 'bg-transparent border-white/20 text-white hover:border-white/50'" 
+          class="brutalist-btn flex-1 md:flex-none px-8 whitespace-nowrap"
+        >
+          VIDEO PROJECTS
+        </button>
+    </div>
 
     <!-- Project Grid -->
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div v-for="project in displayedProjects" :key="project.id" 
-        @click="openDetail(project)"
-        class="brutalist-card bg-neutral-900 border-white/10 group cursor-pointer hover:border-soft-purple hover:-translate-y-2 transition-all p-3 md:p-4 reveal-text"
+        @click="(project.category === 'video' && (project.videoUrl?.includes('youtube') || project.videoUrl?.includes('youtu'))) ? null : openDetail(project)"
+        class="brutalist-card bg-neutral-900 border-white/10 group transition-all p-3 md:p-4 reveal-text flex flex-col"
+        :class="(project.category === 'video' && (project.videoUrl?.includes('youtube') || project.videoUrl?.includes('youtu'))) ? '' : 'cursor-pointer hover:border-soft-purple hover:-translate-y-2'"
       >
-        <div class="aspect-video bg-neutral-800 rounded-xl overflow-hidden mb-6 border-2 border-black relative">
+        <!-- Video Project Layout -->
+        <template v-if="activeCategory === 'video'">
+          <div class="aspect-video bg-neutral-800 rounded-xl overflow-hidden mb-6 border-2 border-black relative flex items-center justify-center group-hover:border-soft-purple transition-colors">
+            <template v-if="project.videoUrl && (project.videoUrl.includes('youtube') || project.videoUrl.includes('youtu'))">
+              <iframe :src="parseVideoUrl(project.videoUrl).src" class="w-full h-full object-cover" frameborder="0" allowfullscreen></iframe>
+            </template>
+            <template v-else>
+              <img v-if="project.imageUrl" :src="project.imageUrl" class="w-full h-full object-cover opacity-60" />
+              <iframe v-else-if="parseVideoUrl(project.videoUrl).type === 'iframe'" :src="parseVideoUrl(project.videoUrl).src" class="w-full h-full object-cover opacity-60 pointer-events-none" frameborder="0" tabindex="-1"></iframe>
+              <video v-else-if="project.videoUrl" :src="parseVideoUrl(project.videoUrl).src" class="w-full h-full object-cover opacity-60 pointer-events-none" preload="metadata"></video>
+              
+              <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:scale-110 transition-transform absolute z-10 pointer-events-none">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-1"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </div>
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none"></div>
+            </template>
+          </div>
+          <h3 class="text-2xl font-black text-white uppercase mt-auto line-clamp-2">
+              {{ project.title }}
+          </h3>
+        </template>
+
+        <!-- Web/App Project Layout -->
+        <template v-else>
+          <div class="aspect-video bg-neutral-800 rounded-xl overflow-hidden mb-6 border-2 border-black relative">
             <img v-if="project.imageUrl" :src="project.imageUrl" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
             <div v-else class="w-full h-full flex items-center justify-center opacity-20">
                 <ImageIcon :size="48" />
@@ -86,14 +151,20 @@ function closeDetail() {
             <span v-if="project.techs?.split(',').length > 3" class="text-[8px] font-black text-white/30 self-center">+{{ project.techs.split(',').length - 3 }} MORE</span>
         </div>
 
-        <p class="text-sm text-white/50 line-clamp-3 mb-4 leading-relaxed">
-            {{ project.description }}
-        </p>
+          <p class="text-sm text-white/50 line-clamp-3 mb-4 leading-relaxed">
+              {{ project.description }}
+          </p>
+        </template>
       </div>
     </div>
 
+    <!-- Empty State for Video -->
+    <div v-if="displayedProjects.length === 0" class="py-24 text-center">
+      <p class="text-white/30 font-black tracking-widest uppercase text-xl">BELUM ADA PROJECT {{ activeCategory }}</p>
+    </div>
+
     <!-- Load More / Show Less Button -->
-    <div v-if="projects?.length > itemsLimit" class="mt-16 flex justify-center">
+    <div v-if="props.projects?.filter(p => (p.category || 'web') === activeCategory).length > itemsLimit" class="mt-16 flex justify-center">
       <button @click="showAll = !showAll" 
         class="brutalist-btn bg-white text-black font-black hover:bg-soft-yellow hover:scale-105 transition-all text-sm px-12 flex items-center gap-3"
       >
@@ -125,7 +196,17 @@ function closeDetail() {
             </button>
 
             <div class="p-5 md:p-12">
-                <div class="grid lg:grid-cols-2 gap-16 items-start">
+                <!-- Pure Video Popup (No Title/Content) for TikTok/IG/MP4 -->
+                <div v-if="selectedProject.category === 'video'" class="flex items-center justify-center w-full h-full pt-4">
+                   <div class="w-full bg-neutral-800 rounded-xl overflow-hidden border-2 border-black flex justify-center bg-black shadow-[8px_8px_0px_0px_var(--soft-purple)]" 
+                        :class="(selectedProject.videoUrl?.includes('tiktok') || selectedProject.videoUrl?.includes('instagram')) ? 'aspect-[9/16] max-h-[80vh] w-auto' : 'aspect-video w-full max-w-5xl'">
+                      <iframe v-if="parseVideoUrl(selectedProject.videoUrl).type === 'iframe'" :src="parseVideoUrl(selectedProject.videoUrl).src" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+                      <video v-else :src="parseVideoUrl(selectedProject.videoUrl).src" controls autoplay class="w-full h-full object-contain"></video>
+                   </div>
+                </div>
+
+                <!-- Standard Project Details -->
+                <div v-else class="grid lg:grid-cols-2 gap-16 items-start">
                     <!-- Text Content -->
                     <div class="space-y-8">
                         <div class="inline-block px-4 py-1 bg-soft-purple border-2 border-black font-black text-xs rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4">

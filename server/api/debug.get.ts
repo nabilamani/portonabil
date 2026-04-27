@@ -1,12 +1,16 @@
 import { db } from '../database';
-import { profile } from '../database/schema';
+import { profile, projects } from '../database/schema';
+import { sql } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {
     try {
-        const data = await db.select().from(profile).get();
+        const p = await db.select().from(profile).limit(1);
+        const projCount = await db.select({ count: sql`count(*)` }).from(projects);
+        
         return {
             success: true,
-            data,
+            hasProfile: p.length > 0,
+            projectsCount: projCount[0].count,
             config: {
                 hasUrl: !!useRuntimeConfig().tursoUrl,
                 hasToken: !!useRuntimeConfig().tursoToken

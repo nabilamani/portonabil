@@ -11,6 +11,8 @@ export const profile = sqliteTable('profile', {
     address: text('address'),
     github: text('github'),
     linkedin: text('linkedin'),
+    tiktok: text('tiktok'),
+    cvUrl: text('cv_url'),
     photoUrl: text('photo_url'),
 });
 
@@ -36,6 +38,7 @@ export const education = sqliteTable('education', {
     degree: text('degree').notNull(),
     period: text('period').notNull(),
     gpa: text('gpa'),
+    order: integer('order').default(0),
 });
 
 export const certifications = sqliteTable('certifications', {
@@ -43,6 +46,7 @@ export const certifications = sqliteTable('certifications', {
     title: text('title').notNull(),
     issuer: text('issuer').notNull(),
     date: text('date').notNull(),
+    order: integer('order').default(0),
 });
 
 export const organizations = sqliteTable('organizations', {
@@ -50,12 +54,14 @@ export const organizations = sqliteTable('organizations', {
     org: text('org').notNull(),
     role: text('role').notNull(),
     period: text('period').notNull(),
+    order: integer('order').default(0),
 });
 
 export const projects = sqliteTable('projects', {
     id: integer('id').primaryKey(),
     title: text('title').notNull(),
     description: text('description').notNull(),
+    category: text('category').default('web'), // 'web' or 'video'
     stats: text('stats'), 
     techs: text('techs'),
     demoUrl: text('demo_url'),
@@ -63,6 +69,7 @@ export const projects = sqliteTable('projects', {
     credentials: text('credentials'),
     features: text('features'), 
     imageUrl: text('image_url'), 
+    videoUrl: text('video_url'),
     order: integer('order').default(0),
 });
 

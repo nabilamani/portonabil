@@ -13,7 +13,9 @@ import {
   Award,
   Users,
   Code2,
-  User
+  User,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-vue-next'
 
 definePageMeta({
@@ -23,6 +25,16 @@ definePageMeta({
 const { data: portfolio, refresh } = await useFetch('/api/portfolio')
 const activeTab = ref('profile')
 const isSaving = ref(false)
+const projectCategoryFilter = ref('web')
+
+const tableData = computed(() => {
+  if (!portfolio.value) return []
+  let data = portfolio.value[activeTab.value] || []
+  if (activeTab.value === 'projects') {
+    data = data.filter(p => (p.category || 'web') === projectCategoryFilter.value)
+  }
+  return data
+})
 
 // --- Modal System ---
 const isModalOpen = ref(false)
@@ -39,11 +51,11 @@ function openModal(type, item = null) {
   } else {
     // Default values for new items
     const defaults = {
-      projects: { title: '', description: '', techs: '', order: 0, stats: '[]', features: '[]', demoUrl: '', githubUrl: '', credentials: '', imageUrl: '' },
+      projects: { title: '', description: '', category: 'web', techs: '', order: 0, stats: '[]', features: '[]', demoUrl: '', githubUrl: '', credentials: '', imageUrl: '', videoUrl: '' },
       experiences: { company: '', role: '', period: '', description: '', order: 0 },
-      education: { institution: '', degree: '', period: '', gpa: '' },
-      organizations: { org: '', role: '', period: '' },
-      certifications: { title: '', issuer: '', date: '' },
+      education: { institution: '', degree: '', period: '', gpa: '', order: 0 },
+      organizations: { org: '', role: '', period: '', order: 0 },
+      certifications: { title: '', issuer: '', date: '', order: 0 },
       skills: { name: '', category: 'hard', order: 0 }
     }
     modalData.value = defaults[type] || {}
@@ -90,6 +102,39 @@ async function deleteItem(type, id) {
   }
 }
 
+async function moveItem(table, index, direction) {
+  if (!portfolio.value || !portfolio.value[table]) return;
+  
+  let items = [...portfolio.value[table]];
+  if (table === 'projects') {
+    items = items.filter(p => (p.category || 'web') === projectCategoryFilter.value);
+  }
+  
+  if (direction === 'up' && index > 0) {
+    const temp = items[index - 1];
+    items[index - 1] = items[index];
+    items[index] = temp;
+  } else if (direction === 'down' && index < items.length - 1) {
+    const temp = items[index + 1];
+    items[index + 1] = items[index];
+    items[index] = temp;
+  } else {
+    return;
+  }
+
+  const newItems = items.map((item, idx) => ({ id: item.id, order: idx + 1 }));
+  
+  try {
+    await $fetch('/api/reorder', {
+      method: 'POST',
+      body: { table, items: newItems }
+    });
+    await refresh();
+  } catch (e) {
+    alert('Gagal mengurutkan: ' + e.message);
+  }
+}
+
 // --- Profile Special ---
 async function saveProfile() {
   isSaving.value = true
@@ -111,15 +156,28 @@ async function onPhotoSelected(e) {
   if (file.size > 2 * 1024 * 1024) return alert('Maks 2MB')
   
   const reader = new FileReader()
-  reader.onload = async (event) => {
+  reader.onload = (event) => {
     portfolio.value.profile.photoUrl = event.target.result
-    await saveProfile()
   }
   reader.readAsDataURL(file)
 }
 
-async function onProjectPhotoSelected(e) {
-  const file = e.target.files[0]
+function onCVSelected(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  if (file.type !== 'application/pdf') {
+    alert('Mohon unggah file dalam format PDF')
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    portfolio.value.profile.cvUrl = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+async function onProjectPhotoSelected(event) {
+  const file = event.target.files[0]
   if (!file) return
   const reader = new FileReader()
   reader.onload = (event) => {
@@ -165,17 +223,36 @@ function formatChatTime(ts) {
   })
 }
 
-watch(activeTab, (t) => {
-  if (t === 'chat') {
-    loadChats()
-    if (!pollTimer) pollTimer = setInterval(loadChats, 5000)
-  } else {
-    if (pollTimer) {
-      clearInterval(pollTimer)
-      pollTimer = null
-    }
+function parseVideoUrl(url) {
+  if (!url) return { type: 'none', src: '' }
+  
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/)
+    if (ytMatch) return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}` }
   }
-}, { immediate: true })
+  
+  if (url.includes('tiktok.com')) {
+    const ttMatch = url.match(/video\/(\d+)/)
+    if (ttMatch) return { type: 'iframe', src: `https://www.tiktok.com/embed/v2/${ttMatch[1]}` }
+  }
+  
+  if (url.includes('instagram.com/p/') || url.includes('instagram.com/reel/')) {
+    let src = url.split('?')[0]
+    if (!src.endsWith('/')) src += '/'
+    return { type: 'iframe', src: `${src}embed/` }
+  }
+
+  return { type: 'video', src: url }
+}
+
+onMounted(() => {
+  loadChats()
+  pollTimer = setInterval(loadChats, 5000)
+})
+
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer)
+})
 
 const { clear: clearSession } = useUserSession()
 async function logout() {
@@ -286,8 +363,28 @@ const menuItems = [
                     <input v-model="portfolio.profile.email" class="cms-input" />
                   </div>
                   <div class="space-y-3">
+                    <label class="cms-label text-soft-purple">Social Links (GitHub, LinkedIn, TikTok)</label>
+                    <div class="grid grid-cols-1 gap-3">
+                      <input v-model="portfolio.profile.github" placeholder="GitHub URL" class="cms-input text-xs" />
+                      <input v-model="portfolio.profile.linkedin" placeholder="LinkedIn URL" class="cms-input text-xs" />
+                      <input v-model="portfolio.profile.tiktok" placeholder="TikTok URL" class="cms-input text-xs" />
+                    </div>
+                  </div>
+                  <div class="space-y-3">
+                    <label class="cms-label text-soft-green">CV / Resume (PDF)</label>
+                    <div class="flex items-center gap-4 p-4 border-4 border-white/10 rounded-2xl bg-black/40">
+                      <div class="flex-1">
+                        <p v-if="portfolio.profile.cvUrl" class="text-[10px] text-accent font-black uppercase mb-2">CV Terunggah ✓</p>
+                        <input type="file" accept=".pdf" @change="onCVSelected" class="text-xs file:brutalist-btn file:!py-1 file:!px-4" />
+                      </div>
+                      <a v-if="portfolio.profile.cvUrl" :href="portfolio.profile.cvUrl" target="_blank" class="p-2 bg-white text-black border-2 border-black hover:bg-accent transition-colors">
+                        <ExternalLink :size="16" />
+                      </a>
+                    </div>
+                  </div>
+                  <div class="space-y-3">
                     <label class="cms-label">Deskripsi Panjang</label>
-                    <textarea v-model="portfolio.profile.description" class="cms-input h-48"></textarea>
+                    <textarea v-model="portfolio.profile.description" class="cms-input h-32"></textarea>
                   </div>
                 </div>
               </div>
@@ -297,6 +394,12 @@ const menuItems = [
 
           <!-- TABLE VIEW (For Projects, Exp, Edu, etc.) -->
           <div v-else-if="activeTab !== 'chat'" class="brutalist-card !p-0 overflow-hidden border-white/20">
+            <!-- Project Category Filter -->
+            <div v-if="activeTab === 'projects'" class="flex border-b-4 border-white/10">
+              <button @click="projectCategoryFilter = 'web'" :class="projectCategoryFilter === 'web' ? 'bg-accent text-black font-black' : 'text-white/50 hover:text-white'" class="flex-1 py-4 uppercase tracking-widest text-sm transition-colors">Web / App Projects</button>
+              <button @click="projectCategoryFilter = 'video'" :class="projectCategoryFilter === 'video' ? 'bg-accent text-black font-black' : 'text-white/50 hover:text-white'" class="flex-1 border-l-4 border-white/10 py-4 uppercase tracking-widest text-sm transition-colors">Video Projects</button>
+            </div>
+
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
@@ -308,7 +411,7 @@ const menuItems = [
                   </tr>
                 </thead>
                 <tbody class="divide-y-2 divide-white/5">
-                  <tr v-for="item in portfolio[activeTab]" :key="item.id" class="hover:bg-white/5 transition-colors group">
+                  <tr v-for="(item, index) in tableData" :key="item.id" class="hover:bg-white/5 transition-colors group">
                     <!-- Column 1: Main Title -->
                     <td class="p-6">
                       <div class="flex items-center gap-4">
@@ -333,6 +436,14 @@ const menuItems = [
                     </td>
                     <!-- Column 4: Actions -->
                     <td class="p-6 text-right space-x-2">
+                      <div class="inline-flex space-x-1 mr-4">
+                        <button @click="moveItem(activeTab, index, 'up')" :disabled="index === 0" class="p-2 bg-neutral-800 text-white border-2 border-black hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ArrowUp :size="16" />
+                        </button>
+                        <button @click="moveItem(activeTab, index, 'down')" :disabled="index === tableData.length - 1" class="p-2 bg-neutral-800 text-white border-2 border-black hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                          <ArrowDown :size="16" />
+                        </button>
+                      </div>
                       <button @click="openModal(activeTab, item)" class="p-2 bg-white text-black border-2 border-black hover:bg-accent transition-colors">
                         <Pencil :size="16" />
                       </button>
@@ -341,7 +452,7 @@ const menuItems = [
                       </button>
                     </td>
                   </tr>
-                  <tr v-if="!portfolio[activeTab]?.length">
+                  <tr v-if="!tableData.length">
                     <td colspan="4" class="p-12 text-center italic opacity-30 font-black tracking-widest uppercase">Data Kosong</td>
                   </tr>
                 </tbody>
@@ -413,29 +524,64 @@ const menuItems = [
         <div class="grid md:grid-cols-2 gap-8">
           <!-- PROJECTS FORM -->
           <template v-if="modalType === 'projects'">
-            <div class="space-y-4">
-              <label class="cms-label">Judul Proyek</label>
-              <input v-model="modalData.title" class="cms-input" />
-              <label class="cms-label">Tech Stack</label>
-              <input v-model="modalData.techs" class="cms-input" />
-              <label class="cms-label">Demo URL</label>
-              <input v-model="modalData.demoUrl" class="cms-input" />
-              <label class="cms-label">GitHub URL</label>
-              <input v-model="modalData.githubUrl" class="cms-input" />
+            <div class="md:col-span-2 flex gap-4 mb-4">
+              <button @click="modalData.category = 'web'" :class="modalData.category === 'web' ? 'bg-accent text-black' : 'bg-transparent text-white border-white/20'" class="flex-1 border-4 p-3 font-black uppercase transition-colors">Project Web/App</button>
+              <button @click="modalData.category = 'video'" :class="modalData.category === 'video' ? 'bg-accent text-black' : 'bg-transparent text-white border-white/20'" class="flex-1 border-4 p-3 font-black uppercase transition-colors">Project Video</button>
             </div>
-            <div class="space-y-4">
-              <label class="cms-label text-soft-green">Thumbnail Proyek</label>
-              <div class="border-4 border-white/10 p-4 rounded-xl bg-black flex flex-col gap-4">
-                <img v-if="modalData.imageUrl" :src="modalData.imageUrl" class="w-full aspect-video object-cover border-2 border-white" />
-                <input type="file" @change="onProjectPhotoSelected" class="text-[10px] file:brutalist-btn file:!py-1" />
+
+            <!-- Web/App Project Fields -->
+            <template v-if="modalData.category === 'web'">
+              <div class="space-y-4">
+                <label class="cms-label">Judul Proyek</label>
+                <input v-model="modalData.title" class="cms-input" />
+                <label class="cms-label">Tech Stack</label>
+                <input v-model="modalData.techs" class="cms-input" />
+                <label class="cms-label">Demo URL</label>
+                <input v-model="modalData.demoUrl" class="cms-input" />
+                <label class="cms-label">GitHub URL</label>
+                <input v-model="modalData.githubUrl" class="cms-input" />
               </div>
-              <label class="cms-label">Deskripsi</label>
-              <textarea v-model="modalData.description" class="cms-input h-32"></textarea>
-            </div>
-            <div class="md:col-span-2 space-y-4 border-t-2 border-white/10 pt-4">
-               <label class="cms-label italic opacity-40">Features (JSON Array)</label>
-               <textarea v-model="modalData.features" class="cms-input h-20 font-mono text-xs"></textarea>
-            </div>
+              <div class="space-y-4">
+                <label class="cms-label text-soft-green">Thumbnail Proyek</label>
+                <div class="border-4 border-white/10 p-4 rounded-xl bg-black flex flex-col gap-4">
+                  <img v-if="modalData.imageUrl" :src="modalData.imageUrl" class="w-full aspect-video object-cover border-2 border-white" />
+                  <input type="file" accept="image/*" @change="onProjectPhotoSelected" class="text-[10px] file:brutalist-btn file:!py-1" />
+                </div>
+                <label class="cms-label">Deskripsi</label>
+                <textarea v-model="modalData.description" class="cms-input h-32"></textarea>
+              </div>
+              <div class="md:col-span-2 space-y-4 border-t-2 border-white/10 pt-4">
+                 <label class="cms-label italic opacity-40">Features (JSON Array)</label>
+                 <textarea v-model="modalData.features" class="cms-input h-20 font-mono text-xs"></textarea>
+              </div>
+            </template>
+
+            <!-- Video Project Fields -->
+            <template v-else>
+              <div class="space-y-4 md:col-span-2">
+                <label class="cms-label">Judul Video</label>
+                <input v-model="modalData.title" class="cms-input" />
+              </div>
+              <div class="space-y-4">
+                <label class="cms-label text-soft-green">Cover Thumbnail (Khusus TikTok/IG)</label>
+                <div class="border-4 border-white/10 p-4 rounded-xl bg-black flex flex-col gap-4">
+                  <img v-if="modalData.imageUrl" :src="modalData.imageUrl" class="w-full aspect-video object-cover border-2 border-white" />
+                  <input type="file" accept="image/*" @change="onProjectPhotoSelected" class="text-[10px] file:brutalist-btn file:!py-1" />
+                </div>
+              </div>
+              <div class="space-y-4">
+                <label class="cms-label text-soft-purple">Link Video (YouTube / TikTok / Instagram / MP4)</label>
+                <input v-model="modalData.videoUrl" placeholder="https://youtube.com/watch?v=..." class="cms-input mb-4" />
+                
+                <div class="border-4 border-white/10 p-6 rounded-xl bg-black flex flex-col items-center">
+                  <template v-if="modalData.videoUrl">
+                    <iframe v-if="parseVideoUrl(modalData.videoUrl).type === 'iframe'" :src="parseVideoUrl(modalData.videoUrl).src" class="w-full max-w-md aspect-video border-2 border-white bg-neutral-900" frameborder="0" allowfullscreen></iframe>
+                    <video v-else :src="parseVideoUrl(modalData.videoUrl).src" controls class="w-full max-w-md aspect-video border-2 border-white bg-neutral-900"></video>
+                  </template>
+                  <p v-else class="text-xs font-black uppercase opacity-30 my-8">Belum ada link video.</p>
+                </div>
+              </div>
+            </template>
           </template>
 
           <!-- EXPERIENCES FORM -->

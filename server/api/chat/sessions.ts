@@ -1,6 +1,6 @@
 import { db } from '~/server/database'
 import { chatSessions, chatMessages } from '~/server/database/schema'
-import { desc, eq, sql } from 'drizzle-orm'
+import { desc, asc, eq, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
 export default defineEventHandler(async (event) => {

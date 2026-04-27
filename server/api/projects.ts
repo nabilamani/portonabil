@@ -17,7 +17,8 @@ export default defineEventHandler(async (event) => {
         const body = await readBody(event);
         return await db.insert(projects).values({
             title: body.title,
-            description: body.description,
+            description: body.description || '', // Ensure default empty for video projects
+            category: body.category || 'web',
             stats: body.stats,
             techs: body.techs,
             demoUrl: body.demoUrl,
@@ -25,6 +26,7 @@ export default defineEventHandler(async (event) => {
             credentials: body.credentials,
             features: body.features,
             imageUrl: body.imageUrl,
+            videoUrl: body.videoUrl,
             order: body.order || 0
         }).returning();
     }
@@ -36,7 +38,8 @@ export default defineEventHandler(async (event) => {
         return await db.update(projects)
             .set({
                 title: body.title,
-                description: body.description,
+                description: body.description !== undefined ? body.description : undefined,
+                category: body.category !== undefined ? body.category : undefined,
                 stats: body.stats,
                 techs: body.techs,
                 demoUrl: body.demoUrl,
@@ -44,6 +47,7 @@ export default defineEventHandler(async (event) => {
                 credentials: body.credentials,
                 features: body.features,
                 imageUrl: body.imageUrl,
+                videoUrl: body.videoUrl,
                 order: body.order
             })
             .where(eq(projects.id, body.id))

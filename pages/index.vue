@@ -121,8 +121,9 @@ watch(isIntroDone, (done) => {
                 <h2 class="text-6xl md:text-[10rem] font-black tracking-tighter leading-none mb-20">LET'S CREATE!</h2>
                 
                 <div class="flex flex-wrap justify-center gap-8 md:gap-16 text-2xl md:text-5xl font-black">
-                    <a href="https://github.com/nabilamani" target="_blank" class="hover:text-soft-purple transition-colors underline decoration-8 decoration-soft-purple underline-offset-8">GITHUB</a>
-                    <a href="https://ungu.in/linkedin_nabilamani1" target="_blank" class="hover:text-soft-blue transition-colors underline decoration-8 decoration-soft-blue underline-offset-8">LINKEDIN</a>
+                    <a v-if="portfolio.profile.github" :href="portfolio.profile.github" target="_blank" class="hover:text-soft-purple transition-colors underline decoration-8 decoration-soft-purple underline-offset-8">GITHUB</a>
+                    <a v-if="portfolio.profile.linkedin" :href="portfolio.profile.linkedin" target="_blank" class="hover:text-soft-blue transition-colors underline decoration-8 decoration-soft-blue underline-offset-8">LINKEDIN</a>
+                    <a v-if="portfolio.profile.tiktok" :href="portfolio.profile.tiktok" target="_blank" class="hover:text-soft-pink transition-colors underline decoration-8 decoration-soft-pink underline-offset-8">TIKTOK</a>
                 </div>
 
                 <div class="mt-24 grid md:grid-cols-2 gap-12 max-w-4xl mx-auto text-left">

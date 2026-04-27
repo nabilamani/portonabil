@@ -10,12 +10,12 @@ export default defineEventHandler(async (event) => {
         // Menggunakan Promise.all untuk mengambil semua data secara paralel
         const [profileResult, experiencesData, skillsData, educationData, organizationsData, certificationsData, projectsData] = await Promise.all([
             db.select().from(profile).limit(1),
-            db.select().from(experiences).orderBy(desc(experiences.order)), // Assuming 'order' column for experiences
-            db.select().from(skills).orderBy(skills.category),
-            db.select().from(education),
-            db.select().from(organizations),
-            db.select().from(certifications),
-            db.select().from(projects).orderBy(desc(projects.order)) // Assuming 'order' column for projects
+            db.select().from(experiences).orderBy(asc(experiences.order)),
+            db.select().from(skills).orderBy(asc(skills.order)),
+            db.select().from(education).orderBy(asc(education.order)),
+            db.select().from(organizations).orderBy(asc(organizations.order)),
+            db.select().from(certifications).orderBy(asc(certifications.order)),
+            db.select().from(projects).orderBy(asc(projects.order))
         ]);
 
         const profileData = profileResult[0] || null;
