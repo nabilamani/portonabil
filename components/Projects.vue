@@ -90,7 +90,7 @@ function parseVideoUrl(url) {
           :class="activeCategory === 'video' ? 'bg-soft-purple text-black border-black' : 'bg-transparent border-white/20 text-white hover:border-white/50'" 
           class="brutalist-btn flex-1 md:flex-none px-8 whitespace-nowrap"
         >
-          VIDEO PROJECTS
+          VIDEO
         </button>
     </div>
 
