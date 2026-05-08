@@ -7,7 +7,7 @@ defineProps(['profile'])
     <!-- Decorative Pattern -->
     <div class="absolute -top-10 -left-10 w-40 h-40 bg-soft-pink/10 rounded-full blur-3xl"></div>
     
-    <h2 class="section-title mb-12 md:mb-20 reveal-text">SIAPA SAYA?</h2>
+    <h2 class="section-title mb-12 md:mb-20 reveal-text">WHO AM I?</h2>
     
     <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
       <div class="relative group reveal-text">
@@ -34,7 +34,7 @@ defineProps(['profile'])
 
       <div class="space-y-10">
         <div class="relative reveal-text">
-            <h3 class="text-2xl md:text-3xl font-black text-soft-green mb-4 inline-block underline decoration-4 decoration-white">PROFIL SINGKAT</h3>
+            <h3 class="text-2xl md:text-3xl font-black text-soft-green mb-4 inline-block underline decoration-4 decoration-white">SHORT PROFILE</h3>
             <div class="text-base md:text-xl leading-relaxed font-medium text-white/90 bg-neutral-900/50 p-6 md:p-8 rounded-2xl md:rounded-3xl border-2 border-white/10" v-html="profile.description"></div>
         </div>
 

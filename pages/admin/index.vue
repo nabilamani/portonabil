@@ -356,6 +356,14 @@ const menuItems = [
                       <input type="file" @change="onPhotoSelected" class="text-xs file:brutalist-btn file:!py-1 file:!px-4" />
                     </div>
                   </div>
+                  <div class="space-y-3">
+                    <label class="cms-label text-soft-orange">Nomor Telepon (WhatsApp)</label>
+                    <input v-model="portfolio.profile.phone" placeholder="+62 ..." class="cms-input" />
+                  </div>
+                  <div class="space-y-3">
+                    <label class="cms-label text-soft-blue">Alamat (Kota, Negara)</label>
+                    <input v-model="portfolio.profile.address" placeholder="Contoh: Jakarta, Indonesia" class="cms-input" />
+                  </div>
                 </div>
                 <div class="space-y-8">
                   <div class="space-y-3">
@@ -385,6 +393,10 @@ const menuItems = [
                   <div class="space-y-3">
                     <label class="cms-label">Deskripsi Panjang</label>
                     <textarea v-model="portfolio.profile.description" class="cms-input h-32"></textarea>
+                  </div>
+                  <div class="space-y-3">
+                    <label class="cms-label text-soft-pink">Bio Singkat (Italic Footer)</label>
+                    <textarea v-model="portfolio.profile.bio" class="cms-input h-24 italic" placeholder="Bio yang akan tampil miring di bagian bawah profil..."></textarea>
                   </div>
                 </div>
               </div>

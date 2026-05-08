@@ -81,9 +81,9 @@ watch(isIntroDone, (done) => {
           </a>
         </nav>
         <div class="flex items-center gap-4">
-            <NuxtLink to="/admin" class="text-xs font-black uppercase tracking-tighter hover:text-soft-purple hover:underline decoration-2 underline-offset-4">
+            <!-- <NuxtLink to="/admin" class="text-xs font-black uppercase tracking-tighter hover:text-soft-purple hover:underline decoration-2 underline-offset-4">
                 Login
-            </NuxtLink>
+            </NuxtLink> -->
             <a :href="'https://wa.me/' + portfolio.profile.phone?.replace(/[^0-9]/g, '')" target="_blank" class="brutalist-btn !py-2 !px-6 bg-soft-green scale-95 hover:scale-100 flex items-center gap-2">
                 <span>Contact</span>
             </a>

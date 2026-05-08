@@ -6,7 +6,7 @@ const colors = ['card-purple', 'card-pink', 'card-yellow', 'card-green', 'card-b
 
 <template>
   <section v-if="experiences" class="max-w-6xl mx-auto px-4 py-12 md:py-20 relative">
-    <h2 class="section-title mb-12 md:mb-24 reveal-text">PENGALAMAN KERJA</h2>
+    <h2 class="section-title mb-12 md:mb-24 reveal-text">WORK EXPERIENCE</h2>
     <div class="space-y-12 md:space-y-20">
       <div v-for="(exp, index) in experiences" :key="exp.id" 
         class="brutalist-card bg-neutral-900 border-white group overflow-visible reveal-text"

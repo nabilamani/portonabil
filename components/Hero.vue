@@ -1,6 +1,6 @@
 <script setup>
 import gsap from 'gsap'
-import { Sparkles, Download } from 'lucide-vue-next'
+import { Sparkles, Eye } from 'lucide-vue-next'
 
 const props = defineProps(['profile'])
 
@@ -12,10 +12,35 @@ const firstNameChars = computed(() => {
 })
 
 const lastNameChars = computed(() => {
-  if (!props.profile?.name) return 'NABIL AMANI'.split('')
+  if (!props.profile?.name) return []
   const parts = props.profile.name.split(' ')
-  return parts.slice(1).join(' ').split('')
+  return parts.length > 1 ? parts.slice(1).join(' ').split('') : []
 })
+
+const viewCV = () => {
+  if (!props.profile?.cvUrl) return
+  
+  try {
+    // Get the base64 data (remove prefix if exists)
+    const base64Data = props.profile.cvUrl.split(',')[1] || props.profile.cvUrl
+    const byteCharacters = atob(base64Data)
+    const byteNumbers = new Array(byteCharacters.length)
+    
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
+    }
+    
+    const byteArray = new Uint8Array(byteNumbers)
+    const blob = new Blob([byteArray], { type: 'application/pdf' })
+    const fileURL = URL.createObjectURL(blob)
+    
+    window.open(fileURL, '_blank')
+  } catch (e) {
+    console.error('Error viewing CV:', e)
+    // Fallback to direct link if blob creation fails
+    window.open(props.profile.cvUrl, '_blank')
+  }
+}
 
 onMounted(() => {
   // Kinetic Typography GSAP Animation Timeline
@@ -71,12 +96,12 @@ onMounted(() => {
                 <Sparkles :size="18" class="fill-current" /> AVAILABLE FOR WORK
             </div>
             
-            <a v-if="profile.cvUrl" :href="profile.cvUrl" download="CV_NabilAmani.pdf" class="hero-badge inline-flex items-center gap-2 px-4 py-1.5 md:px-6 md:py-2 bg-white border-[3px] md:border-4 border-black text-black font-black uppercase text-sm md:text-lg rounded-full transform rotate-1 hover:rotate-0 transition-transform shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none">
-                <Download :size="18" /> DOWNLOAD CV
+            <a v-if="profile.cvUrl" href="#" @click.prevent="viewCV" class="hero-badge inline-flex items-center gap-2 px-4 py-1.5 md:px-6 md:py-2 bg-white border-[3px] md:border-4 border-black text-black font-black uppercase text-sm md:text-lg rounded-full transform rotate-1 hover:rotate-0 transition-transform shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none">
+                <Eye :size="18" /> VIEW CV
             </a>
         </div>
         
-        <h1 class="text-5xl sm:text-6xl md:text-[8rem] lg:text-[10rem] leading-[0.85] text-white font-black" style="perspective: 1000px;">
+        <h1 class="text-4xl sm:text-5xl md:text-[5rem] lg:text-[8rem] leading-[0.85] text-white font-black" style="perspective: 1000px;">
             <div class="hero-name-line overflow-hidden flex flex-wrap">
               <span v-for="(char, i) in firstNameChars" :key="'f'+i" class="char-first inline-block" v-html="char === ' ' ? '&nbsp;' : char"></span>
             </div>
@@ -88,8 +113,8 @@ onMounted(() => {
         </h1>
         <div class="hero-desc mt-8 md:mt-12 flex flex-col md:flex-row items-start md:items-center gap-8">
             <p class="text-xl md:text-3xl lg:text-4xl max-w-2xl font-bold leading-tight">
-                {{ profile.role || 'Web Programmer' }} <span class="text-soft-green">& Videography Enthusiast</span> based in Indonesia. 
-                <span class="text-soft-yellow underline decoration-wavy decoration-2 md:decoration-4">Crafting premium digital experiences.</span>
+                {{ profile.role || 'Web Programmer' }} <span class="text-soft-green">& Videography Enthusiast</span> based in Jabodetabek. 
+                <span class="text-soft-yellow underline decoration-wavy decoration-2 md:decoration-4">Building Full Stack Applications.</span>
             </p>
         </div>
         
