@@ -12,7 +12,8 @@ import {
   ChevronDown, 
   ChevronUp,
   Zap,
-  Eye
+  Eye,
+  Layout
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -242,18 +243,26 @@ function parseVideoUrl(url) {
                         </div>
 
                         <!-- Actions -->
-                        <div class="flex flex-wrap gap-6 pt-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap gap-3 pt-6">
                             <a :href="selectedProject.demoUrl" target="_blank" v-if="selectedProject.demoUrl"
-                            class="brutalist-btn bg-soft-purple text-black font-black flex items-center gap-2 group/btn text-sm md:text-base px-6 md:px-8 py-2 md:py-3"
+                            class="brutalist-btn bg-soft-purple text-black font-black flex items-center justify-center gap-2 group/btn text-xs md:text-sm px-4 md:px-6 py-2.5 md:py-3"
                             >
-                            <span>VISIT LIVE DEMO</span>
-                            <ExternalLink :size="16" class="md:size-[18px] group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                            <span>LIVE DEMO</span>
+                            <ExternalLink :size="16" class="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                             </a>
-                            <a :href="selectedProject.githubUrl" target="_blank" v-if="selectedProject.githubUrl"
-                            class="brutalist-btn bg-black text-white border-white flex items-center gap-2 group/btn text-sm md:text-base px-6 md:px-8 py-2 md:py-3"
+
+                            <a :href="selectedProject.prototypeUrl" target="_blank" v-if="selectedProject.prototypeUrl"
+                            class="brutalist-btn bg-soft-blue text-black font-black flex items-center justify-center gap-2 group/btn text-xs md:text-sm px-4 md:px-6 py-2.5 md:py-3"
                             >
-                            <span>GITHUB SOURCE</span>
-                            <Github :size="16" class="md:size-[18px] opacity-50 group-hover/btn:scale-110 transition-transform" />
+                            <span>PROTOTYPE</span>
+                            <Layout :size="16" class="group-hover/btn:rotate-12 transition-transform" />
+                            </a>
+                            
+                            <a :href="selectedProject.githubUrl" target="_blank" v-if="selectedProject.githubUrl"
+                            class="brutalist-btn bg-black text-white border-white flex items-center justify-center gap-2 group/btn text-xs md:text-sm px-4 md:px-6 py-2.5 md:py-3"
+                            >
+                            <span>SOURCE</span>
+                            <Github :size="16" class="opacity-50 group-hover/btn:scale-110 transition-transform" />
                             </a>
                         </div>
 

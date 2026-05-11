@@ -27,6 +27,7 @@ export default defineEventHandler(async (event) => {
             features: body.features,
             imageUrl: body.imageUrl,
             videoUrl: body.videoUrl,
+            prototypeUrl: body.prototypeUrl,
             order: body.order || 0
         }).returning();
     }
@@ -48,6 +49,7 @@ export default defineEventHandler(async (event) => {
                 features: body.features,
                 imageUrl: body.imageUrl,
                 videoUrl: body.videoUrl,
+                prototypeUrl: body.prototypeUrl,
                 order: body.order
             })
             .where(eq(projects.id, body.id))

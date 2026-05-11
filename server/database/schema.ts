@@ -70,6 +70,7 @@ export const projects = sqliteTable('projects', {
     features: text('features'), 
     imageUrl: text('image_url'), 
     videoUrl: text('video_url'),
+    prototypeUrl: text('prototype_url'),
     order: integer('order').default(0),
 });
 

@@ -51,7 +51,7 @@ function openModal(type, item = null) {
   } else {
     // Default values for new items
     const defaults = {
-      projects: { title: '', description: '', category: 'web', techs: '', order: 0, stats: '[]', features: '[]', demoUrl: '', githubUrl: '', credentials: '', imageUrl: '', videoUrl: '' },
+      projects: { title: '', description: '', category: 'web', techs: '', order: 0, stats: '[]', features: '[]', demoUrl: '', githubUrl: '', prototypeUrl: '', credentials: '', imageUrl: '', videoUrl: '' },
       experiences: { company: '', role: '', period: '', description: '', order: 0 },
       education: { institution: '', degree: '', period: '', gpa: '', order: 0 },
       organizations: { org: '', role: '', period: '', order: 0 },
@@ -552,6 +552,8 @@ const menuItems = [
                 <input v-model="modalData.demoUrl" class="cms-input" />
                 <label class="cms-label">GitHub URL</label>
                 <input v-model="modalData.githubUrl" class="cms-input" />
+                <label class="cms-label">Prototype URL (Figma/Adobe XD)</label>
+                <input v-model="modalData.prototypeUrl" class="cms-input" />
               </div>
               <div class="space-y-4">
                 <label class="cms-label text-soft-green">Thumbnail Proyek</label>
