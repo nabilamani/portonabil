@@ -113,7 +113,7 @@ onMounted(() => {
         </h1>
         <div class="hero-desc mt-8 md:mt-12 flex flex-col md:flex-row items-start md:items-center gap-8">
             <p class="text-xl md:text-3xl lg:text-4xl max-w-2xl font-bold leading-tight">
-                {{ profile.role || 'Web Programmer' }} <span class="text-soft-green">& UI/UX Enthusiast</span> based in Jabodetabek. 
+                {{ profile.role || 'Web Programmer' }} <span class="text-soft-green">& Data Enthusiast</span> based in Jabodetabek. 
                 <span class="text-soft-yellow underline decoration-wavy decoration-2 md:decoration-4">Building Full Stack Applications.</span>
             </p>
         </div>
