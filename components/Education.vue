@@ -32,15 +32,44 @@ defineProps(['education', 'organizations', 'certifications'])
     </div>
 
     <!-- CERTIFICATIONS -->
-    <div v-if="certifications?.length">
-      <h2 class="section-title mb-12 md:mb-24 bg-soft-purple text-white border-white reveal-text">SERTIFICATION</h2>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
-        <div v-for="item in certifications" :key="item.id" class="brutalist-card card-pink bg-neutral-900 group hover:bg-soft-pink transition-colors reveal-text">
-          <p class="text-sm font-black text-white/50 group-hover:text-black/50">{{ item.date }}</p>
-          <h4 class="text-xl font-black mt-4 underline decoration-2 underline-offset-4 group-hover:text-black">{{ item.title }}</h4>
-          <p class="text-sm mt-6 font-bold group-hover:text-black/70">{{ item.issuer }}</p>
-        </div>
-      </div>
+<div v-if="certifications?.length">
+  <h2 class="section-title mb-12 md:mb-24 bg-soft-purple text-white border-white reveal-text">
+    SERTIFICATION
+  </h2>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
+    <div
+      v-for="item in certifications"
+      :key="item.id"
+      class="brutalist-card card-pink bg-neutral-900 group hover:bg-soft-pink transition-colors reveal-text"
+    >
+      <p class="text-sm font-black text-white/50 group-hover:text-black/50">
+        {{ item.date }}
+      </p>
+
+      <h4
+        class="text-xl font-black mt-4 underline decoration-2 underline-offset-4 group-hover:text-black"
+      >
+        {{ item.title }}
+      </h4>
+
+      <p class="text-sm mt-6 font-bold group-hover:text-black/70">
+        {{ item.issuer }}
+      </p>
     </div>
+  </div>
+
+  <!-- OTHER CERTIFICATES -->
+  <div class="mt-12 flex justify-center reveal-text">
+    <a
+      href="https://drive.google.com/drive/folders/1zi7b95PxToW2mg1Fr5BiZuJHtCZ_eGGq?usp=drive_link"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="brutalist-btn bg-white text-black font-black hover:bg-soft-yellow hover:scale-105 transition-all text-sm px-12 flex items-center gap-3"
+    >
+      See More certifications →
+    </a>
+  </div>
+</div>
   </section>
 </template>
